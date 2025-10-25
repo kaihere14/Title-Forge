@@ -1,6 +1,4 @@
 import {
-  StandardCheckoutClient,
-  Env,
   MetaInfo,
   StandardCheckoutPayRequest,
 } from "pg-sdk-node";
@@ -18,7 +16,6 @@ export const initiatePayment = async (req, res) => {
     const request = StandardCheckoutPayRequest.builder()
       .merchantOrderId(merchantOrderId)
       .amount(amount)
-      .customerId(userId) // Required field - using userId from JWT
       .redirectUrl(redirectUrl)
       .metaInfo(metaInfo)
       .build();
@@ -26,7 +23,7 @@ export const initiatePayment = async (req, res) => {
     // Using pay method to initiate payment
     const response = await client.pay(request);
     const checkoutPageUrl = response.redirectUrl;
-    res.redirect(checkoutPageUrl);
+    res.json({ checkoutPageUrl });
   } catch (error) {
     console.error("Error initiating payment:", error);
     res.status(500).json({
