@@ -9,7 +9,7 @@ const app = express()
 const port = 3000
 
 app.use(cors({
-  origin: ['http://localhost:5173','https://ebb14a071c9b.ngrok-free.app'],
+  origin: ['https://title-forge.vercel.app'],
   credentials: true,
 }));
 app.use(express.json())
