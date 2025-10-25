@@ -20,7 +20,7 @@ const PaymentVerify = () => {
           }
         );
 
-        response.data.redirectUrl && (window.location.href = response.data.redirectUrl);z
+        response.data.redirectUrl && (window.location.href = response.data.redirectUrl);
 
         // Backend will handle redirect
       } catch (error) {

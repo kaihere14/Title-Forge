@@ -38,7 +38,7 @@ export const verifyPayment = async (req, res) => {
     const state = response.state;
     console.log("Payment verification state:", state);
 
-    if (state === "SUCCESS") {
+    if (state === "COMPLETED") {
       res.json({ redirectUrl: "https://title-forge.vercel.app/success" });
     } else {
       res.json({ redirectUrl: "https://title-forge.vercel.app/failure" });
