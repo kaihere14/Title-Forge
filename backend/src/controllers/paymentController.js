@@ -22,7 +22,7 @@ export const initiatePayment = async (req, res) => {
     const checkoutPageUrl = response.redirectUrl;
 
     // ✅ Better: send JSON so frontend can handle redirect
-    res.status(200).json({ checkoutPageUrl });
+    res.redirect(checkoutPageUrl);
   } catch (error) {
     console.error("Error initiating payment:", error);
     res.status(500).json({
@@ -39,9 +39,9 @@ export const verifyPayment = async (req, res) => {
     const state = response.state;
     console.log("Payment verification state:", state);
     if (state === "SUCCESS") {
-      res.json({ redirectUrl: "https://title-forge.vercel.app/success" });
+      res.redirect("https://title-forge.vercel.app/success");
     } else {
-      res.json({ redirectUrl: "https://title-forge.vercel.app/failure" });
+      res.redirect("https://title-forge.vercel.app/failure");
     }
   } catch (error) {
     console.error("Error verifying payment:", error);
