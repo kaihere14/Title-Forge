@@ -28,7 +28,7 @@ const Navbar = () => {
           onClick={() => navigate("/")}
           className="logo cursor-pointer flex items-center"
         >
-          <img src="/src/assets/logo2.png" alt="" className="h-8 w-auto" />
+          <img src="/public/logo2.png" alt="" className="h-8 w-auto" />
           <h1 className="text-sm md:text-md font-bold ml-1">TitleForge</h1>
         </div>
 
