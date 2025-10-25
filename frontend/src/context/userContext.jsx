@@ -27,17 +27,13 @@ export const UserProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState(null);
 
-  // Check if user is logged in on mount
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      fetchUserData();
-    }
-  }, []);
-
   const fetchUserData = async () => {
     try {
-      const response = await api.get("/api/user/me");
+      const response = await api.get("/api/user/me",{
+		headers: {
+			Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+		}
+	  });
       if (response.data) {
         setIsLoggedIn(true);
         setUserData(response.data);
@@ -51,6 +47,15 @@ export const UserProvider = ({ children }) => {
       localStorage.removeItem("refreshToken");
     }
   };
+
+  // Check if user is logged in on mount
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      fetchUserData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const logout = () => {
     localStorage.removeItem("accessToken");
