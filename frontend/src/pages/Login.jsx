@@ -35,12 +35,13 @@ const Login = () => {
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_DOMAIN}/api/user/login`,
-        formData,
-        {
-          withCredentials: true,
-        }
+        formData
       );
-      if (response) {
+      if (response.data) {
+        // Store tokens in localStorage
+        localStorage.setItem("accessToken", response.data.accessToken);
+        localStorage.setItem("refreshToken", response.data.refreshToken);
+
         setIsLoggedIn(true);
         setUserData(response.data);
         navigate("/dashboard");

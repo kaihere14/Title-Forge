@@ -1,14 +1,17 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET
+const JWT_SECRET = process.env.JWT_SECRET;
 
 function signToken(userId) {
-  const refreshToken = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: "7d"});
-  const accessToken = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '15m' });
+  const refreshToken = jwt.sign({ id: userId }, JWT_SECRET, {
+    expiresIn: "7d",
+  });
+  const accessToken = jwt.sign({ id: userId }, JWT_SECRET, {
+    expiresIn: "15m",
+  });
   return { accessToken, refreshToken };
 }
-
 
 export const register = async (req, res) => {
   try {
@@ -25,21 +28,17 @@ export const register = async (req, res) => {
 
     const user = await User.create({ username, email, password });
     const { accessToken, refreshToken } = signToken(user._id);
-    const options = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    };
-    res.cookie("refreshToken", refreshToken, options);
-    res.cookie("accessToken", accessToken, { ...options, maxAge: 15 * 60 * 1000 }); 
-    res.status(201).json({ user });
+
+    res.status(201).json({
+      user,
+      accessToken,
+      refreshToken,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 export const login = async (req, res) => {
   try {
@@ -54,35 +53,24 @@ export const login = async (req, res) => {
     if (!valid) return res.status(401).json({ message: "Invalid credentials" });
 
     const { accessToken, refreshToken } = signToken(user._id);
-    const options = {
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    };
-    res.cookie("refreshToken", refreshToken, options);
-    res.cookie("accessToken", accessToken, { ...options, maxAge: 15 * 60 * 1000 }); 
-    res.status(201).json({ user });
+
+    res.status(200).json({
+      user,
+      accessToken,
+      refreshToken,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-
 export const logout = async (req, res) => {
-    const options = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
-      maxAge: 0,
-    };
-    res.cookie("refreshToken", "", options);
-    res.cookie("accessToken", "", options);
-    res.json({ message: "Logged out" });
+  res.json({ message: "Logged out successfully" });
 };
 
-
 export const getUserDetail = async (req, res) => {
-    const id = req.userId;
+  const id = req.userId;
   try {
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ message: "User not found" });

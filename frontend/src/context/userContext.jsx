@@ -3,19 +3,41 @@ import axios from "axios";
 
 const UserContext = createContext(null);
 
+// Create axios instance with interceptor
+const api = axios.create({
+  baseURL: import.meta.env.VITE_BACKEND_DOMAIN,
+});
+
+// Add token to all requests
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export const UserProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState(null);
 
+  // Check if user is logged in on mount
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      fetchUserData();
+    }
+  }, []);
+
   const fetchUserData = async () => {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_DOMAIN}/api/user/me`,
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await api.get("/api/user/me");
       if (response.data) {
         setIsLoggedIn(true);
         setUserData(response.data);
@@ -24,7 +46,17 @@ export const UserProvider = ({ children }) => {
       setIsLoggedIn(false);
       setUserData(null);
       setError(err);
+      // Clear tokens if request fails
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
     }
+  };
+
+  const logout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    setIsLoggedIn(false);
+    setUserData(null);
   };
 
   const value = {
@@ -33,6 +65,8 @@ export const UserProvider = ({ children }) => {
     setIsLoggedIn,
     setUserData,
     fetchUserData,
+    logout,
+    api, // Export api instance for use in other components
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

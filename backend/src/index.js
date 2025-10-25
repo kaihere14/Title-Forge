@@ -9,7 +9,7 @@ const app = express()
 const port = 3000
 
 app.use(cors({
-  origin: ['https://title-forge.vercel.app'],
+  origin: ['https://title-forge.vercel.app',['http://localhost:5173']],
   credentials: true,
 }));
 app.use(express.json())

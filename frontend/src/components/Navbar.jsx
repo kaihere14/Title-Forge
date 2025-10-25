@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useUser } from "../context/userContext";
-import axios from "axios";
 
 const Navbar = () => {
-  const { isLoggedIn, setIsLoggedIn, setUserData } = useUser();
+  const { isLoggedIn, logout } = useUser();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -15,14 +14,8 @@ const Navbar = () => {
   const handleLogout = async () => {
     // Handle logout logic here
     try {
-      await axios.post(
-        `${import.meta.env.VITE_BACKEND_DOMAIN}/api/user/logout`,
-        {},
-        { withCredentials: true }
-      );
-      // Update user context or state as needed
-      setIsLoggedIn(false);
-      setUserData(null);
+      // Call logout from context which clears localStorage
+      logout();
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);

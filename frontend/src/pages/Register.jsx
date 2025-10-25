@@ -49,12 +49,13 @@ const Register = () => {
           username: formData.name,
           email: formData.email,
           password: formData.password,
-        },
-        {
-          withCredentials: true,
         }
       );
-      if (response) {
+      if (response.data) {
+        // Store tokens in localStorage
+        localStorage.setItem("accessToken", response.data.accessToken);
+        localStorage.setItem("refreshToken", response.data.refreshToken);
+
         setIsLoggedIn(true);
         setUserData(response.data);
         navigate("/dashboard");

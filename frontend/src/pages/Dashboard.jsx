@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useUser } from "../context/userContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { userData, isLoggedIn } = useUser();
+  const { userData, isLoggedIn, api } = useUser();
 
   const [channelName, setChannelName] = useState("");
   const [useAccountEmail, setUseAccountEmail] = useState(true);
@@ -15,7 +14,11 @@ const Dashboard = () => {
   const [resultData, setResultData] = useState(null);
   const [showResults, setShowResults] = useState(false);
 
-
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate("/");
+    }
+  }, [isLoggedIn, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,16 +42,10 @@ const Dashboard = () => {
     const emailToUse = useAccountEmail ? userData?.user?.email : customEmail;
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_DOMAIN}/api/youtube/channel-id`,
-        {
-          name: channelName.trim(),
-          email: emailToUse,
-        },
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await api.post("/api/youtube/channel-id", {
+        name: channelName.trim(),
+        email: emailToUse,
+      });
 
       // Store the complete response data
       setResultData({
