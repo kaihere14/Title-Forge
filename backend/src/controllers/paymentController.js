@@ -5,6 +5,7 @@ import { client } from "../utils/paymentClass.js";
 export const initiatePayment = async (req, res) => {
   try {
     const { amount } = req.body;
+    console.log("Amount received for payment initiation:", amount);
     const merchantOrderId = randomUUID();
     const redirectUrl = `https://title-forge.vercel.app/payment-verify/${merchantOrderId}`;
 

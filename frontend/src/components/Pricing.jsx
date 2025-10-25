@@ -41,7 +41,7 @@ const initiatePayment = async (amount) => {
     const response = await axios.post(
       `${import.meta.env.VITE_BACKEND_DOMAIN}/api/payment/create-payment`,
       {
-        amount,
+        amount
       }
     );
     const { checkoutPageUrl } = response.data;
