@@ -15,11 +15,7 @@ const Dashboard = () => {
   const [resultData, setResultData] = useState(null);
   const [showResults, setShowResults] = useState(false);
 
-  useEffect(() => {
-    if (!isLoggedIn) {
-      navigate("/");
-    }
-  }, [isLoggedIn, navigate]);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
