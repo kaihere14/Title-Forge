@@ -37,7 +37,7 @@ export const verifyPayment = async (req, res) => {
     const { merchantOrderId } = req.body;
     const response = await client.getOrderStatus(merchantOrderId);
     const state = response.state;
-
+    console.log("Payment verification state:", state);
     if (state === "SUCCESS") {
       res.json({ redirectUrl: "https://title-forge.vercel.app/success" });
     } else {
