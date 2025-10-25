@@ -1,7 +1,4 @@
-import {
-  MetaInfo,
-  StandardCheckoutPayRequest,
-} from "pg-sdk-node";
+import { MetaInfo, StandardCheckoutPayRequest } from "pg-sdk-node";
 import { randomUUID } from "crypto";
 import { client } from "../utils/paymentClass.js";
 
@@ -10,6 +7,7 @@ export const initiatePayment = async (req, res) => {
     const { amount } = req.body;
     const merchantOrderId = randomUUID();
     const redirectUrl = `https://title-forge.vercel.app/payment-verify/${merchantOrderId}`;
+
     const metaInfo = MetaInfo.builder().udf1("udf1").udf2("udf2").build();
 
     const request = StandardCheckoutPayRequest.builder()
@@ -19,10 +17,11 @@ export const initiatePayment = async (req, res) => {
       .metaInfo(metaInfo)
       .build();
 
-    // Using pay method to initiate payment
     const response = await client.pay(request);
     const checkoutPageUrl = response.redirectUrl;
-    res.redirect(checkoutPageUrl);
+
+    // ✅ Better: send JSON so frontend can handle redirect
+    res.status(200).json({ checkoutPageUrl });
   } catch (error) {
     console.error("Error initiating payment:", error);
     res.status(500).json({
@@ -33,17 +32,16 @@ export const initiatePayment = async (req, res) => {
 };
 
 export const verifyPayment = async (req, res) => {
-  console.log("Verifying payment...", req.body);
-  const { merchantOrderId } = req.body;
   try {
-    client.getOrderStatus(merchantOrderId).then((response) => {
-      const state = response.state;
-      if (state === "SUCCESS") {
-        res.redirect(`https://title-forge.vercel.app//success`);
-      } else {
-        res.redirect(`https://title-forge.vercel.app/failure`);
-      }
-    });
+    const { merchantOrderId } = req.body;
+    const response = await client.getOrderStatus(merchantOrderId);
+    const state = response.state;
+
+    if (state === "SUCCESS") {
+      res.json({ redirectUrl: "https://title-forge.vercel.app/success" });
+    } else {
+      res.json({ redirectUrl: "https://title-forge.vercel.app/failure" });
+    }
   } catch (error) {
     console.error("Error verifying payment:", error);
     res.status(500).json({ message: "Error verifying payment" });

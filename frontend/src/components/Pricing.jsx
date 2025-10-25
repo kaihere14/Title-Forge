@@ -44,6 +44,8 @@ const initiatePayment = async (amount) => {
         amount,
       }
     );
+    const { checkoutPageUrl } = response.data;
+    window.location.href = checkoutPageUrl;
   } catch (error) {
     console.error("Error initiating payment:", error);
     throw error;
