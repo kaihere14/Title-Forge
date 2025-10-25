@@ -107,7 +107,7 @@ export const sendTitles = async (oldTitles, newTitles, email) => {
         
         <!-- CTA Button -->
         <div style="text-align: center; margin-top: 32px;">
-          <a href="https://pawpick.store" style="display: inline-block; padding: 12px 32px; background-color: #111827; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500; transition: background-color 0.2s;">
+          <a href="https://title-forge.vercel.app/dashboard" style="display: inline-block; padding: 12px 32px; background-color: #111827; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500; transition: background-color 0.2s;">
             View Dashboard
           </a>
         </div>
