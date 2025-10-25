@@ -19,7 +19,8 @@ const PaymentVerify = () => {
             },
           }
         );
-        
+
+        response.data.redirectUrl && (window.location.href = response.data.redirectUrl);z
 
         // Backend will handle redirect
       } catch (error) {
