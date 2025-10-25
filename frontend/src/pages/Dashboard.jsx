@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { userData, isLoggedIn, api } = useUser();
+  const { userData, isLoggedIn, api,fetchUserData } = useUser();
 
   const [channelName, setChannelName] = useState("");
   const [useAccountEmail, setUseAccountEmail] = useState(true);
