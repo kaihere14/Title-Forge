@@ -8,9 +8,8 @@ import { client } from "../utils/paymentClass.js";
 export const initiatePayment = async (req, res) => {
   try {
     const { amount } = req.body;
-    const userId = req.userId; // From JWT middleware
     const merchantOrderId = randomUUID();
-    const redirectUrl = `${process.env.FRONTEND_DOMAIN}/payment-verify/${merchantOrderId}`;
+    const redirectUrl = `https://title-forge.vercel.app/payment-verify/${merchantOrderId}`;
     const metaInfo = MetaInfo.builder().udf1("udf1").udf2("udf2").build();
 
     const request = StandardCheckoutPayRequest.builder()
