@@ -8,9 +8,7 @@ const Profile = () => {
 
   useEffect(() => {
     const loadUserData = async () => {
-      if (!userData) {
-        await fetchUserData();
-      }
+      fetchUserData();
       setIsLoading(false);
     };
     loadUserData();
