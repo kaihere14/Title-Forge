@@ -15,10 +15,11 @@ const Dashboard = () => {
   const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      navigate("/");
-    }
-  }, [isLoggedIn, navigate]);
+      fetchUserData();
+      if (isLoggedIn) {
+        navigate("/dashboard");
+      }
+    }, [isLoggedIn, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
