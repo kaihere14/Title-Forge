@@ -23,7 +23,7 @@ export const initiatePayment = async (req, res) => {
     // Using pay method to initiate payment
     const response = await client.pay(request);
     const checkoutPageUrl = response.redirectUrl;
-    res.json({ checkoutPageUrl });
+    res.redirect(checkoutPageUrl);
   } catch (error) {
     console.error("Error initiating payment:", error);
     res.status(500).json({
@@ -40,9 +40,9 @@ export const verifyPayment = async (req, res) => {
     client.getOrderStatus(merchantOrderId).then((response) => {
       const state = response.state;
       if (state === "SUCCESS") {
-        res.redirect(`${process.env.FRONTEND_DOMAIN}/success`);
+        res.redirect(`https://title-forge.vercel.app//success`);
       } else {
-        res.redirect(`${process.env.FRONTEND_DOMAIN}/failure`);
+        res.redirect(`https://title-forge.vercel.app/failure`);
       }
     });
   } catch (error) {
