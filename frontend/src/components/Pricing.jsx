@@ -1,4 +1,5 @@
 import { CheckIcon } from "@heroicons/react/20/solid";
+import axios from "axios";
 
 const tiers = [
   {
@@ -34,6 +35,20 @@ const tiers = [
     featured: true,
   },
 ]
+
+const initiatePayment = async (amount) => {
+  try {
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_DOMAIN}/api/payment/create-payment`,
+      {
+        amount,
+      }
+    );
+  } catch (error) {
+    console.error("Error initiating payment:", error);
+    throw error;
+  }
+};
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -114,6 +129,16 @@ export default function PricingSection() {
             <a
               href={tier.href}
               aria-describedby={tier.id}
+              onClick={async (e) => {
+                e.preventDefault();
+                try {
+                  const amount = tier.name === 'Starter' ? 59900 : 199900; // Amount in paise
+                  initiatePayment(amount)
+                } catch (error) {
+                  console.error("Payment initiation failed:", error);
+                  alert("Failed to initiate payment. Please try again.");
+                }
+              }}
               className={classNames(
                 tier.featured
                   ? 'bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600'

@@ -2,6 +2,7 @@ import express from 'express'
 import 'dotenv/config'
 import youtubeRouter from './routes/youtube.route.js'
 import userRoute from './routes/user.routes.js'
+import payment from './routes/paymentRoute.js'
 import { connectDB } from './db/database.js'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
@@ -17,7 +18,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 app.use('/api/youtube', youtubeRouter)
 app.use('/api/user', userRoute)
-
+app.use('/api/payment', payment)
 app.get('/', (req, res) => {
   res.send('Hello World!')
 })
