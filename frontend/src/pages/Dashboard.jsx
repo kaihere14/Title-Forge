@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useUser } from "../context/userContext";
 import { useNavigate } from "react-router-dom";
+import { DashboardLoadingSkeleton } from "../components/SkeletonLoader";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { userData, isLoggedIn, api,fetchUserData } = useUser();
+  const { userData, isLoggedIn, api, fetchUserData } = useUser();
 
   const [channelName, setChannelName] = useState("");
   const [useAccountEmail, setUseAccountEmail] = useState(true);
@@ -15,11 +16,11 @@ const Dashboard = () => {
   const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
-      fetchUserData();
-      if (isLoggedIn) {
-        navigate("/dashboard");
-      }
-    }, [isLoggedIn, navigate]);
+    fetchUserData();
+    if (isLoggedIn) {
+      navigate("/dashboard");
+    }
+  }, [isLoggedIn, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -260,8 +261,11 @@ const Dashboard = () => {
           </form>
         </div>
 
+        {/* Loading Skeleton */}
+        {isLoading && <DashboardLoadingSkeleton />}
+
         {/* Results Section */}
-        {showResults && resultData && (
+        {showResults && resultData && !isLoading && (
           <div className="space-y-6">
             {/* Channel Info Card */}
             <div className="bg-white border border-gray-200 rounded-2xl p-6">

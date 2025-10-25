@@ -8,11 +8,10 @@ const tiers = [
     priceMonthly: '₹599',
     description: "Perfect for individual creators just starting their YouTube journey.",
     features: [
-      '50 AI title generations per month', 
+      '10 AI title generations per month', 
       'Basic analytics dashboard', 
       'Click-through rate optimization', 
       'Email support',
-      'Mobile app access'
     ],
     featured: false,
   },
