@@ -8,7 +8,7 @@ import { initiatePayment, verifyPayment } from "../controllers/paymentController
 const router = Router();
 
 router.post("/create-payment",verifyJWT,  initiatePayment);
-router.post("/verify-payment", verifyPayment);
+router.post("/verify-payment",verifyJWT, verifyPayment);
 
 
 export default router;
