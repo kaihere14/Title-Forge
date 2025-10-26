@@ -17,7 +17,9 @@ export const getYoutubeId = async (req, res) => {
       `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${channelName}&key=${apiKey}`
     );
     const channelId = response.data.items[0].id.channelId;
-    const { answer, value } = await latestVideos(channelId);
+    const response2 = await axios.get(`https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelId}&key=${apiKey}`);
+    const uploadsPlaylistId = response2.data.items[0].contentDetails.relatedPlaylists.uploads;
+    const { answer, value } = await latestVideos(uploadsPlaylistId);
     await sendTitles(value, answer, email);
     const userId = req.userId;
     await User.findByIdAndUpdate(userId, {
@@ -37,12 +39,12 @@ export const getYoutubeId = async (req, res) => {
   }
 };
 
-export const latestVideos = async (channelId) => {
+export const latestVideos = async (uploadsPlaylistId) => {
   const apiKey = process.env.YOUTUBE_API_KEY;
 
   try {
     const response = await axios.get(
-      `https://www.googleapis.com/youtube/v3/search?key=${apiKey}&channelId=${channelId}&part=snippet,id&order=date&maxResults=5`
+      `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=5&key=${apiKey}`
     );
     const videoData = response.data.items;
     const value = [];
