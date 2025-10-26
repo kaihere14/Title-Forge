@@ -43,10 +43,16 @@ export const verifyPayment = async (req, res) => {
     if (state === "COMPLETED") {
       if (response.amount >= 199900) {
         const userId = req.userId;
-        await User.findByIdAndUpdate(userId, { $inc: { credits: +50 } });
+        const user = await User.findById(userId)
+        user.credits += 50;
+        user.subscription = "pro"
+        await user.save({validateBeforeSave:false})
       } else {
         const userId = req.userId;
-        await User.findByIdAndUpdate(userId, { $inc: { credits: +10 } });
+        const user = await User.findById(userId)
+        user.credits += 10;
+        user.subscription = "starter"
+        await user.save({validateBeforeSave:false})
       }
       res.json({ redirectUrl: "https://title-forge.vercel.app/success" });
     } else {
