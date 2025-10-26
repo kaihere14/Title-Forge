@@ -26,7 +26,7 @@ const userSchema = new Schema(
     },
     credits: {
       type: Number,
-      default: 3,
+      default: 1,
     },
   },
   { timestamps: true }

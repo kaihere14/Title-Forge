@@ -114,7 +114,9 @@ const Home = () => {
                   clipRule="evenodd"
                 />
               </svg>
-              <span>Free 3 credits to start</span>
+              <span>
+                Get your first try for free - no credit card verification
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <svg

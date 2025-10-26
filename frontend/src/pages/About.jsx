@@ -2,10 +2,9 @@ import React from "react";
 import { useUser } from "../context/userContext";
 import { useNavigate } from "react-router-dom";
 
-
 const About = () => {
-   const { isLoggedIn } = useUser();
-   const navigate = useNavigate()
+  const { isLoggedIn } = useUser();
+  const navigate = useNavigate();
   return (
     <div className="w-full min-h-screen bg-white">
       {/* Hero Section */}
@@ -311,9 +310,12 @@ const About = () => {
             faster.
           </p>
 
-            <button onClick={()=>{
-              navigate(isLoggedIn?"/dashboard":"/login")
-            }} className="bg-[#F44505] hover:bg-[#D93D05] cursor-pointer text-white py-4 px-12 rounded-xl text-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center gap-3 mx-auto">
+          <button
+            onClick={() => {
+              navigate(isLoggedIn ? "/dashboard" : "/login");
+            }}
+            className="bg-[#F44505] hover:bg-[#D93D05] cursor-pointer text-white py-4 px-12 rounded-xl text-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center gap-3 mx-auto"
+          >
             <span>Get Started Free</span>
             <svg
               className="h-4 w-4"
@@ -343,7 +345,7 @@ const About = () => {
                   clipRule="evenodd"
                 />
               </svg>
-              <span>3 free credits</span>
+              <span>1 free credit - no credit card verification</span>
             </div>
             <div className="flex items-center gap-2">
               <svg
