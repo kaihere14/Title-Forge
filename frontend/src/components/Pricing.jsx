@@ -42,6 +42,10 @@ const initiatePayment = async (amount) => {
       `${import.meta.env.VITE_BACKEND_DOMAIN}/api/payment/create-payment`,
       {
         amount
+      },{
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
       }
     );
     const { checkoutPageUrl } = response.data;
