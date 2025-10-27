@@ -14,7 +14,7 @@ import Failure from "./pages/Failure";
 
 const App = () => {
   return (
-    <div>
+    <div className="overflow-hidden">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
