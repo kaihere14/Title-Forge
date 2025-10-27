@@ -97,4 +97,28 @@ export const getUserDetail = async (req, res) => {
   }
 };
 
+export const tokenRefresh = async(req,res) => {
+  const {refreshToken} = req.body;
+  try {
+    if(!refreshToken) {
+      return res.status(400).json({message:"Refresh token required"});
+    }
+
+    const decoded = jwt.verify(refreshToken, JWT_SECRET);
+    const userId = decoded.id;
+    
+    const user = await User.findById(userId);
+    if(!user) {
+      return res.status(404).json({message:"User not found"});
+    }
+
+    const {accessToken, refreshToken: newRefreshToken} = signToken(userId);
+    
+    res.json({accessToken, refreshToken: newRefreshToken});
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+    res.status(500).json({message: "Error refreshing token"});
+  }
+}
+
 export default { register, login, logout, getUserDetail };
