@@ -69,7 +69,7 @@ export const UserProvider = ({ children }) => {
 
     // Check if user is logged in on mount
     useEffect(() => {
-      const token = localStorage.getItem("accessToken") && localStorage.getItem("refreshToken");
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("refreshToken");
       if (token) {
         fetchUserData();
       } else {
