@@ -1,8 +1,9 @@
-import { MetaInfo, StandardCheckoutPayRequest } from "pg-sdk-node";
+import { MetaInfo, PaymentDetail, StandardCheckoutPayRequest } from "pg-sdk-node";
 import { randomUUID } from "crypto";
 import { client } from "../utils/paymentClass.js";
 import User from "../models/user.model.js";
 import { redis } from "../db/redis.db.js";
+import Payment from "../models/payment.model.js";
 
 
 export const initiatePayment = async (req, res) => {
@@ -19,6 +20,13 @@ export const initiatePayment = async (req, res) => {
       .redirectUrl(redirectUrl)
       .metaInfo(metaInfo)
       .build();
+
+      await Payment.create({
+        merchantOrderId: merchantOrderId,
+        plan: amount >= 199900 ? "pro" : "starter",
+        amount: amount,
+        status: "pending",
+      });
 
     const response = await client.pay(request);
     const checkoutPageUrl = response.redirectUrl;
@@ -42,6 +50,11 @@ export const verifyPayment = async (req, res) => {
 
     if (state === "COMPLETED") {
       await redis.del(`user_info:${req.userId}`);
+      await Payment.updateOne(
+        { merchantOrderId: merchantOrderId },
+        { status: "completed" }
+      );
+
       if (response.amount >= 199900) {
         const userId = req.userId;
         const user = await User.findById(userId)
@@ -50,6 +63,10 @@ export const verifyPayment = async (req, res) => {
         await user.save({validateBeforeSave:false})
       } else {
       await redis.del(`user_info:${req.userId}`);
+      await Payment.updateOne(
+        { merchantOrderId: merchantOrderId },
+        { status: "failed" }
+      );
         const userId = req.userId;
         const user = await User.findById(userId)
         user.credits += 10;
