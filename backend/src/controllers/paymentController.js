@@ -55,26 +55,28 @@ export const verifyPayment = async (req, res) => {
         { status: "completed" }
       );
 
-      if (response.amount >= 199900) {
-        const userId = req.userId;
-        const user = await User.findById(userId)
-        user.credits += 50;
-        user.subscription = "pro"
-        await user.save({validateBeforeSave:false})
-      } else {
-      await redis.del(`user_info:${req.userId}`);
+          if (response.amount >= 199900) {
+            const userId = req.userId;
+            const user = await User.findById(userId); 
+            user.credits += 50;
+            user.subscription = "pro"
+            await user.save({validateBeforeSave:false})
+          } else {
+          await redis.del(`user_info:${req.userId}`);
+          
+            const userId = req.userId;
+            const user = await User.findById(userId)
+            user.credits += 10;
+            user.subscription = "starter"
+            await user.save({validateBeforeSave:false})
+          }
+      res.json({ redirectUrl: "https://title-forge.vercel.app/success" });
+    } else {
       await Payment.updateOne(
         { merchantOrderId: merchantOrderId },
         { status: "failed" }
       );
-        const userId = req.userId;
-        const user = await User.findById(userId)
-        user.credits += 10;
-        user.subscription = "starter"
-        await user.save({validateBeforeSave:false})
-      }
-      res.json({ redirectUrl: "https://title-forge.vercel.app/success" });
-    } else {
+      await redis.del(`user_info:${req.userId}`);
       res.json({ redirectUrl: "https://title-forge.vercel.app/failure" });
     }
   } catch (error) {
