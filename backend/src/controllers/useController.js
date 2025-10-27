@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
+import { redis } from "../db/redis.db.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -49,8 +50,13 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
+
+
     const valid = await user.verifyPassword(password);
     if (!valid) return res.status(401).json({ message: "Invalid credentials" });
+
+    await redis.set(`user_info:${user._id}`, JSON.stringify(user)); 
+    await redis.expire(`user_info:${user._id}`, 3600);
 
     const { accessToken, refreshToken } = signToken(user._id);
 
@@ -73,6 +79,11 @@ export const getUserDetail = async (req, res) => {
   const id = req.userId;
   try {
     const user = await User.findById(id);
+
+    if(await redis.exists(`user_info:${id}`)) {
+      const cachedUser = await redis.get(`user_info:${id}`);
+      return  res.json({ user: JSON.parse(cachedUser) });
+    }
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({ user });

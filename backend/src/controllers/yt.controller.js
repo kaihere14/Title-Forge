@@ -3,6 +3,8 @@ import "dotenv/config";
 import { titleEnhance } from "./gemini.controller.js";
 import User from "../models/user.model.js";
 import { sendTitles } from "./resend.controller.js";
+import { redis } from "../db/redis.db.js";
+
 
 export const getYoutubeId = async (req, res) => {
   const { name, email } = req.body;
@@ -22,9 +24,11 @@ export const getYoutubeId = async (req, res) => {
     const { answer, value } = await latestVideos(uploadsPlaylistId);
     await sendTitles(value, answer, email);
     const userId = req.userId;
+    await redis.del(`user_info:${userId}`);
     await User.findByIdAndUpdate(userId, {
       $inc: { credits: -1, usedCredits: +1 },
     });
+  
     return res
       .status(200)
       .json({

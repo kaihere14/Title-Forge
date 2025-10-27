@@ -2,6 +2,7 @@ import { MetaInfo, StandardCheckoutPayRequest } from "pg-sdk-node";
 import { randomUUID } from "crypto";
 import { client } from "../utils/paymentClass.js";
 import User from "../models/user.model.js";
+import { redis } from "../db/redis.db.js";
 
 
 export const initiatePayment = async (req, res) => {
@@ -22,7 +23,6 @@ export const initiatePayment = async (req, res) => {
     const response = await client.pay(request);
     const checkoutPageUrl = response.redirectUrl;
 
-    // ✅ Better: send JSON so frontend can handle redirect
     res.status(200).json({ checkoutPageUrl });
   } catch (error) {
     console.error("Error initiating payment:", error);
@@ -41,6 +41,7 @@ export const verifyPayment = async (req, res) => {
     console.log("Payment verification state:", state);
 
     if (state === "COMPLETED") {
+      await redis.del(`user_info:${req.userId}`);
       if (response.amount >= 199900) {
         const userId = req.userId;
         const user = await User.findById(userId)
@@ -48,6 +49,7 @@ export const verifyPayment = async (req, res) => {
         user.subscription = "pro"
         await user.save({validateBeforeSave:false})
       } else {
+      await redis.del(`user_info:${req.userId}`);
         const userId = req.userId;
         const user = await User.findById(userId)
         user.credits += 10;
