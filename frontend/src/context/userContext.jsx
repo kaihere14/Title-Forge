@@ -41,7 +41,7 @@ export const UserProvider = ({ children }) => {
     } catch (err) {
       if (err.response.status === 403) {
         try {
-          const response2 = await axios.post(`${import.meta.env.VITE_BACKEND_DOMAIN}/api/auth/refresh-token`, { refreshToken: localStorage.getItem("refreshToken") });
+          const response2 = await axios.post(`${import.meta.env.VITE_BACKEND_DOMAIN}/api/user/refresh-token`, { refreshToken: localStorage.getItem("refreshToken") });
           localStorage.setItem("accessToken", response2.data.accessToken);
           localStorage.setItem("refreshToken", response2.data.refreshToken);
           const response3 = await api.get(`${import.meta.env.VITE_BACKEND_DOMAIN}/api/user/me`, {
