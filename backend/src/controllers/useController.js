@@ -78,12 +78,12 @@ export const logout = async (req, res) => {
 export const getUserDetail = async (req, res) => {
   const id = req.userId;
   try {
-    const user = await User.findById(id);
-
+  let user;
     if(await redis.exists(`user_info:${id}`)) {
       const cachedUser = await redis.get(`user_info:${id}`);
       return  res.json({ user: JSON.parse(cachedUser) });
     }else{
+      user = await User.findById(id);
       await redis.set(`user_info:${id}`, JSON.stringify(user));
       await redis.expire(`user_info:${id}`, 3600);
     }
