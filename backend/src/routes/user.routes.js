@@ -5,12 +5,12 @@ import  verifyJWT  from "../middlewares/veirfyJWT.js";
 
 
 const router = Router();
-router.use(rateLimit2);
+
 
 router.post("/register", register);
 router.post("/login", login);
 router.post("/logout", logout);
-router.get("/me", verifyJWT, getUserDetail);
-router.post("/refresh-token", tokenRefresh);
+router.get("/me", verifyJWT, rateLimit2,getUserDetail);
+router.post("/refresh-token",rateLimit2, tokenRefresh);
 
 export default router;

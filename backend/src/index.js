@@ -9,11 +9,12 @@ import cors from 'cors'
 const app = express()
 const port = 3000
 
+app.set('trust proxy', 1);
 app.use(cors({
   origin: ['https://title-forge.vercel.app','http://localhost:5173'],
   credentials: true,
 }));
-app.set('trust proxy', true);
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
