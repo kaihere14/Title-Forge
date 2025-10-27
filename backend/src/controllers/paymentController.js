@@ -22,6 +22,7 @@ export const initiatePayment = async (req, res) => {
       .build();
 
       await Payment.create({
+        userId: req.userId,
         merchantOrderId: merchantOrderId,
         plan: amount >= 199900 ? "pro" : "starter",
         amount: amount,
@@ -84,3 +85,14 @@ export const verifyPayment = async (req, res) => {
     res.status(500).json({ message: "Error verifying payment" });
   }
 };
+
+
+export const fetchAllPaymennts = async (req, res) => {
+  try {
+    const payments = await Payment.find({ userId: req.userId }).sort({ createdAt: -1 });
+    res.status(200).json({ payments });
+  } catch (error) {
+    console.error("Error fetching payments:", error);
+    res.status(500).json({ message: "Error fetching payments" });
+  }
+}
