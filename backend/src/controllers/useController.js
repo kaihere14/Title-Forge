@@ -83,6 +83,9 @@ export const getUserDetail = async (req, res) => {
     if(await redis.exists(`user_info:${id}`)) {
       const cachedUser = await redis.get(`user_info:${id}`);
       return  res.json({ user: JSON.parse(cachedUser) });
+    }else{
+      await redis.set(`user_info:${id}`, JSON.stringify(user));
+      await redis.expire(`user_info:${id}`, 3600);
     }
     if (!user) return res.status(404).json({ message: "User not found" });
 
