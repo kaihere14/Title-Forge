@@ -89,7 +89,7 @@ export const verifyPayment = async (req, res) => {
 
 export const fetchAllPaymennts = async (req, res) => {
   try {
-    const payments = await Payment.find({ userId: req.userId }).sort({ createdAt: -1 });
+    const payments = await Payment.find({ userId: req.userId });
     res.status(200).json({ payments });
   } catch (error) {
     console.error("Error fetching payments:", error);

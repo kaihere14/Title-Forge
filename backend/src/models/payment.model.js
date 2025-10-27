@@ -14,6 +14,7 @@ const paymentSchema = new Schema(
       default: "pending",
     },
     merchantOrderId: { type: String, required: true, unique: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );
