@@ -1,6 +1,6 @@
 import axios from "axios";
 import "dotenv/config";
-import { titleEnhance } from "./gemini.controller.js";
+import { generateTitlesFlow } from "./gemini.controller.js";
 import User from "../models/user.model.js";
 import { sendTitles } from "./resend.controller.js";
 import { redis } from "../db/redis.db.js";
@@ -55,7 +55,7 @@ export const latestVideos = async (uploadsPlaylistId) => {
     videoData.map((val, index) => {
       value.push(val.snippet.title);
     });
-    const answer = await titleEnhance(value);
+    const answer = await generateTitlesFlow(value);
     return { answer, value };
   } catch (error) {
     console.error("Error fetching latest videos:", error.message);
