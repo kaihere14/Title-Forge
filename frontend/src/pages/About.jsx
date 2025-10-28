@@ -316,7 +316,7 @@ const About = () => {
             }}
             className="bg-[#F44505] hover:bg-[#D93D05] cursor-pointer text-white py-4 px-12 rounded-xl text-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center gap-3 mx-auto"
           >
-            <span>Get Started Free</span>
+            <span>{isLoggedIn ? "Go To Dashboard" : "Get Started Free"}</span>
             <svg
               className="h-4 w-4"
               fill="none"
