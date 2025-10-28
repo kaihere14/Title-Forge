@@ -10,6 +10,6 @@ const router = Router();
 
 router.post("/create-payment",verifyJWT,rateLimit2,  initiatePayment);
 router.post("/verify-payment",verifyJWT, rateLimit2, verifyPayment);
-router.get("/fetch-payments", verifyJWT, rateLimit2, fetchAllPaymennts);
+router.get("/fetch-payments", verifyJWT, rateLimit2 , fetchAllPaymennts);
 
 export default router;
