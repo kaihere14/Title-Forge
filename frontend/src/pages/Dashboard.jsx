@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useUser } from "../context/userContext";
 import { useNavigate } from "react-router-dom";
 import { DashboardLoadingSkeleton } from "../components/SkeletonLoader";
@@ -6,6 +6,8 @@ import { DashboardLoadingSkeleton } from "../components/SkeletonLoader";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { userData, isLoggedIn, api, fetchUserData } = useUser();
+  const newTitlesRef = useRef(null);
+  const loadingRef = useRef(null);
 
   const [channelName, setChannelName] = useState("");
   const [useAccountEmail, setUseAccountEmail] = useState(true);
@@ -27,6 +29,14 @@ const Dashboard = () => {
     setError("");
     setIsLoading(true);
     setShowResults(false);
+
+    // Scroll immediately when button is clicked
+    setTimeout(() => {
+      loadingRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
 
     // Validation
     if (!channelName.trim()) {
@@ -262,7 +272,11 @@ const Dashboard = () => {
         </div>
 
         {/* Loading Skeleton */}
-        {isLoading && <DashboardLoadingSkeleton />}
+        {isLoading && (
+          <div ref={loadingRef}>
+            <DashboardLoadingSkeleton />
+          </div>
+        )}
 
         {/* Results Section */}
         {showResults && resultData && !isLoading && (
@@ -302,53 +316,12 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Old Titles Section */}
-            {resultData.oldTitles && resultData.oldTitles.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-2xl p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    Original Titles
-                  </h2>
-                  <span className="text-sm text-gray-600">
-                    {resultData.oldTitles.length} titles
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  {resultData.oldTitles.map((title, index) => (
-                    <div
-                      key={`old-${index}`}
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-gray-300 transition-colors group"
-                    >
-                      <p className="text-gray-900 flex-1">{title}</p>
-                      <button
-                        onClick={() => handleCopyTitle(title)}
-                        className="ml-4 text-gray-400 hover:text-gray-900 transition-colors opacity-0 group-hover:opacity-100"
-                        title="Copy to clipboard"
-                      >
-                        <svg
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* New AI Generated Titles Section */}
+            {/* New AI Generated Titles Section - MOVED TO TOP */}
             {resultData.newTitles && resultData.newTitles.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-2xl p-8">
+              <div
+                ref={newTitlesRef}
+                className="bg-white border border-gray-200 rounded-2xl p-8"
+              >
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900 mb-1">
@@ -402,6 +375,50 @@ const Dashboard = () => {
                       {resultData.emailSentTo}
                     </span>
                   </p>
+                </div>
+              </div>
+            )}
+
+            {/* Old Titles Section - MOVED TO BOTTOM */}
+            {resultData.oldTitles && resultData.oldTitles.length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-2xl p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Original Titles
+                  </h2>
+                  <span className="text-sm text-gray-600">
+                    {resultData.oldTitles.length} titles
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {resultData.oldTitles.map((title, index) => (
+                    <div
+                      key={`old-${index}`}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-gray-300 transition-colors group"
+                    >
+                      <p className="text-gray-900 flex-1">{title}</p>
+                      <button
+                        onClick={() => handleCopyTitle(title)}
+                        className="ml-4 text-gray-400 hover:text-gray-900 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Copy to clipboard"
+                      >
+                        <svg
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

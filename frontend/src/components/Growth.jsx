@@ -24,14 +24,13 @@ export default function VideoGrowthCard() {
 
   const maxGrowth = Math.max(...weeklyData.map(d => d.growth));
 
-  // Convert points (x,y) in 0..100 space to a smooth SVG path using Catmull-Rom -> Bezier
-  // TENSION controls how curvy the spline is (higher -> more pronounced curves)
+ 
   const makeSmoothPath = (pts, TENSION = 0.45) => {
     if (!pts.length) return "";
     if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
 
     const cr2bezier = (p0, p1, p2, p3) => {
-      // Catmull-Rom to Bezier conversion using configurable tension
+
       const bp1 = {
         x: p1.x + (p2.x - p0.x) * TENSION,
         y: p1.y + (p2.y - p0.y) * TENSION,
