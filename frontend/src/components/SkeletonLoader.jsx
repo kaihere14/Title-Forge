@@ -34,7 +34,7 @@ export const TitlesSectionSkeleton = ({ count = 5, variant = "gray" }) => {
 
   const bgColor = variant === "green" ? "bg-green-50" : "bg-gray-50";
   const borderColor =
-    variant === "green" ? "border-green-100" : "border-gray-100";
+    variant === "green" ? "border-green-500" : "border-gray-100";
   const titleText =
     variant === "green" ? "AI Generated Titles" : "Original Titles";
   const subtitleText =

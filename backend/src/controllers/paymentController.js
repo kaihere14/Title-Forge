@@ -10,7 +10,7 @@ export const initiatePayment = async (req, res) => {
   try {
     const { amount } = req.body;
     const merchantOrderId = randomUUID();
-    const redirectUrl = `https://title-forge.vercel.app/payment-verify/${merchantOrderId}`;
+    const redirectUrl = `https://www.titleforge.me/payment-verify/${merchantOrderId}`;
 
     const metaInfo = MetaInfo.builder().udf1("udf1").udf2("udf2").build();
 
@@ -56,10 +56,10 @@ export const verifyPayment = async (req, res) => {
         { status: "completed" }
       );
 
-          if (response.amount >= 199900) {
+          if (response.amount >= 49900) {
             const userId = req.userId;
             const user = await User.findById(userId); 
-            user.credits += 50;
+            user.credits += 10;
             user.subscription = "pro"
             await user.save({validateBeforeSave:false})
           } else {
@@ -67,18 +67,18 @@ export const verifyPayment = async (req, res) => {
           
             const userId = req.userId;
             const user = await User.findById(userId)
-            user.credits += 10;
+            user.credits += 5;
             user.subscription = "starter"
             await user.save({validateBeforeSave:false})
           }
-      res.json({ redirectUrl: "https://title-forge.vercel.app/success" });
+      res.json({ redirectUrl: "https://www.titleforge.me/success" });
     } else {
       await Payment.updateOne(
         { merchantOrderId: merchantOrderId },
         { status: "failed" }
       );
       await redis.del(`user_info:${req.userId}`);
-      res.json({ redirectUrl: "https://title-forge.vercel.app/failure" });
+      res.json({ redirectUrl: "https://www.titleforge.me/failure" });
     }
   } catch (error) {
     console.error("Error verifying payment:", error);
