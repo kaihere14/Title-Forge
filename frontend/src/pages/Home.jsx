@@ -51,7 +51,7 @@ const Home = () => {
             >
               <path d="M17.0007 1.20825 18.3195 3.68108 20.7923 4.99992 18.3195 6.31876 17.0007 8.79159 15.6818 6.31876 13.209 4.99992 15.6818 3.68108 17.0007 1.20825ZM8.00065 4.33325 10.6673 9.33325 15.6673 11.9999 10.6673 14.6666 8.00065 19.6666 5.33398 14.6666.333984 11.9999 5.33398 9.33325 8.00065 4.33325ZM19.6673 16.3333 18.0007 13.2083 16.334 16.3333 13.209 17.9999 16.334 19.6666 18.0007 22.7916 19.6673 19.6666 22.7923 17.9999 19.6673 16.3333Z"></path>
             </svg>
-            {isLoggedIn? "Dashboard" : "Get A Demo"}
+            {isLoggedIn ? "Dashboard" : "Get A Demo"}
           </button>
           <button
             onClick={() => navigate("/about")}
@@ -170,6 +170,22 @@ const Home = () => {
                 AI-powered YouTube title optimization for creators who want to
                 maximize their reach and engagement.
               </p>
+              {/* Product Hunt Badge */}
+              <div className="mb-4">
+                <a
+                  href="https://www.producthunt.com/products/title-forge?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-title&#0045;forge"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <img
+                    src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1032347&theme=light&t=1761764545570"
+                    alt="Title&#0032;Forge - Forge&#0032;viral&#0044;&#0032;click&#0045;worthy&#0032;YouTube&#0032;titles&#0032;using&#0032;AI | Product Hunt"
+                    style={{ width: "250px", height: "54px" }}
+                    width="250"
+                    height="54"
+                  />
+                </a>
+              </div>
               {/* Social Media Icons */}
               <div className="flex gap-4">
                 <a
