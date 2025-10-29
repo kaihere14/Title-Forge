@@ -6,12 +6,13 @@ const tiers = [
     name: 'Starter',
     id: 'tier-starter',
     href: '#',
-    priceMonthly: '₹599',
-    description: "Perfect for individual creators just starting their YouTube journey.",
+    priceMonthly: '₹299',
+    description: 'Perfect for individual creators exploring AI-powered title generation.',
     features: [
-      '10 AI title generations per month', 
-      'Basic analytics dashboard', 
-      'Click-through rate optimization', 
+      '5 tokens per month (1 token = 5 AI titles)',
+      'Full access to title generator',
+      'Basic analytics & insights',
+      'Click-through rate optimization tips',
       'Email support',
     ],
     featured: false,
@@ -20,21 +21,20 @@ const tiers = [
     name: 'Pro Creator',
     id: 'tier-pro',
     href: '#',
-    priceMonthly: '₹1999',
-    description: 'Advanced features for serious content creators and agencies.',
+    priceMonthly: '₹499',
+    description: 'For creators who need more tokens and deeper insights.',
     features: [
-      'Unlimited AI title generations',
-      'Advanced performance analytics',
-      'A/B testing for titles',
-      'Trend analysis & suggestions',
-      'Bulk title optimization',
-      'Priority support (24/7)',
-      'Custom branding options',
-      'API access for automation'
+      '10 tokens per month (1 token = 5 AI titles)',
+      'Full access to title generator',
+      'Advanced analytics & performance tracking',
+      'CTR optimization assistance',
+      'Priority email support',
+      'Early access to new AI features',
     ],
     featured: true,
   },
-]
+];
+
 
 const initiatePayment = async (amount) => {
   try {
@@ -138,7 +138,7 @@ export default function PricingSection() {
               onClick={async (e) => {
                 e.preventDefault();
                 try {
-                  const amount = tier.name === 'Starter' ? 59900 : 199900; // Amount in paise
+                  const amount = tier.name === 'Starter' ? 29900 : 59900; // Amount in paise
                   initiatePayment(amount)
                 } catch (error) {
                   console.error("Payment initiation failed:", error);
