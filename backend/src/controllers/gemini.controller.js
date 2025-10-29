@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import Perplexity from "@perplexity-ai/perplexity_ai";
+import { redis } from "../db/redis.db.js";
 
 const ai = new GoogleGenAI({});
 const client = new Perplexity({
@@ -7,23 +8,54 @@ const client = new Perplexity({
 });
 
 const uncommonWords = [
-  "Boost", "Glow", "Flip", "Snap", "Burst", "Drift", "Lift", "Pop", "Rush", "Spark",
-  "Hidden", "Rare", "Sneak", "Twist", "Fresh", "Real", "Secret", "Behind",
-  "Calm", "Bright", "Neat", "Clean", "Cozy", "Chill", "Pure", "Smooth", "Crisp", "Easy",
-  "Sync", "Swap", "Flow", "Track", "Drop", "Patch", "Tune", "Scan"
+  "Boost",
+  "Glow",
+  "Flip",
+  "Snap",
+  "Burst",
+  "Drift",
+  "Lift",
+  "Pop",
+  "Rush",
+  "Spark",
+  "Hidden",
+  "Rare",
+  "Sneak",
+  "Twist",
+  "Fresh",
+  "Real",
+  "Secret",
+  "Behind",
+  "Calm",
+  "Bright",
+  "Neat",
+  "Clean",
+  "Cozy",
+  "Chill",
+  "Pure",
+  "Smooth",
+  "Crisp",
+  "Easy",
+  "Sync",
+  "Swap",
+  "Flow",
+  "Track",
+  "Drop",
+  "Patch",
+  "Tune",
+  "Scan",
 ];
 
-// --- Helper to clean Markdown symbols like * or ** ---
 const sanitizeTitle = (text) => {
   return text
-    .replace(/\*{1,2}(.*?)\*{1,2}/g, "$1") // remove * or ** emphasis
-    .replace(/`/g, "")                    // remove backticks
-    .replace(/#+/g, "")                   // remove headers
-    .replace(/\[(.*?)\]\((.*?)\)/g, "$1") // remove markdown links
+    .replace(/\*{1,2}(.*?)\*{1,2}/g, "$1")
+    .replace(/`/g, "")
+    .replace(/#+/g, "")
+    .replace(/\[(.*?)\]\((.*?)\)/g, "$1")
     .trim();
 };
 
-export const generateTitlesFlow = async (titles) => {
+export const generateTitlesFlow = async (titles, channelId) => {
   if (!Array.isArray(titles) || titles.length === 0) {
     throw new Error("Please provide an array of titles");
   }
@@ -49,10 +81,47 @@ Output JSON only:
     });
 
     const raw = analysisResponse.choices?.[0]?.message?.content?.trim() || "[]";
-    const cleaned = raw.replace(/^```json|```/g, "").trim();
-    const analysis = JSON.parse(cleaned);
 
-    // --- Phase 2: Gemini Rewrite (same as before) ---
+    // More robust cleaning for markdown code blocks
+    let cleaned = raw;
+
+    // Remove ```json at the start
+    if (cleaned.startsWith("```json")) {
+      cleaned = cleaned.replace(/^```json\s*\n?/i, "");
+    } else if (cleaned.startsWith("```")) {
+      cleaned = cleaned.replace(/^```\s*\n?/, "");
+    }
+
+    // Remove ``` at the end
+    if (cleaned.endsWith("```")) {
+      cleaned = cleaned.replace(/\n?```\s*$/, "");
+    }
+
+    cleaned = cleaned.trim();
+
+    let analysis;
+    try {
+      analysis = JSON.parse(cleaned);
+    } catch (parseError) {
+      console.error("Failed to parse Perplexity response:", parseError);
+      console.error("Raw response:", raw);
+      console.error("Cleaned response:", cleaned);
+      throw new Error("Failed to parse analysis response");
+    }
+
+    // Cache the analysis with proper Redis syntax (string, not object)
+    try {
+      await redis.set(
+        `channel_analysis:${channelId}`,
+        JSON.stringify(analysis),
+        "EX",
+        3600 // 1 hour expiry
+      );
+    } catch (redisError) {
+      console.error("Redis cache error (non-critical):", redisError.message);
+      // Continue even if caching fails
+    }
+
     const geminiPrompt = `
 Rewrite each of these titles for maximum YouTube CTR.
 Rules:
@@ -69,12 +138,11 @@ ${analysis.map((a) => `Title: ${a.title}`).join("\n")}
     const geminiResponse = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: geminiPrompt,
-      generationConfig: { temperature: 0.9, topK: 30, topP: 0.85 },
+      generationConfig: { temperature: 0.85, topK: 40, topP: 0.9 }
     });
 
     const text = geminiResponse?.text?.trim() || "";
 
-    // --- Clean up Markdown or * characters ---
     const sanitized = sanitizeTitle(text);
     const finalTitles = sanitized
       .split("\n")
@@ -84,6 +152,45 @@ ${analysis.map((a) => `Title: ${a.title}`).join("\n")}
     return finalTitles;
   } catch (err) {
     console.error("Error:", err);
+    throw new Error("Title generation failed");
+  }
+};
+
+export const directGeminiGenerate = async (analysis) => {
+  console.log("Generating titles for channel:");
+
+  const geminiPrompt = `
+Rewrite each of these titles for maximum YouTube CTR.
+Rules:
+- Keep core meaning.
+- Do NOT use "*" or any markdown formatting.
+- Use 1 uncommon word from this list: ${uncommonWords.join(", ")}.
+- Add "new" or "down" naturally.
+- 50–68 chars, human tone.
+- Return one title per line.
+
+${analysis.map((a) => `Title: ${a.title}`).join("\n")}
+`;
+
+  try {
+    const geminiResponse = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: geminiPrompt,
+      generationConfig: { temperature: 0.85, topK: 40, topP: 0.9 }
+
+    });
+
+    const text = geminiResponse?.text?.trim() || "";
+
+    const sanitized = sanitizeTitle(text);
+    const finalTitles = sanitized
+      .split("\n")
+      .map((t) => sanitizeTitle(t))
+      .filter(Boolean);
+
+    return finalTitles;
+  } catch (error) {
+    console.error("Error:", error);
     throw new Error("Title generation failed");
   }
 };
