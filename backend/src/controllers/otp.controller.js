@@ -22,7 +22,7 @@ export const generateOTP = async (req, res) => {
 
     await forgotPasswordEmail(otp, email);
 
-    res.status(200).json({ message: "OTP generated and sent", otp }); 
+    res.status(200).json({ message: "OTP generated and sent"}); 
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
