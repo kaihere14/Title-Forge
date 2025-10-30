@@ -71,13 +71,36 @@ const Profile = () => {
 
   if (!isLoggedIn || !userData) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-6">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex items-center justify-center px-6">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Please log in
+          <div className="mb-6">
+            <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full mx-auto flex items-center justify-center shadow-lg">
+              <svg 
+                className="w-10 h-10 text-white" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
+                />
+              </svg>
+            </div>
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">
+            Authentication Required
           </h2>
-          <Link to="/login" className="text-gray-600 hover:text-gray-900">
-            Go to login
+          <p className="text-gray-600 mb-8 max-w-sm mx-auto">
+            Please log in to access your account and continue
+          </p>
+          <Link 
+            to="/login" 
+            className="inline-block bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold px-8 py-3 rounded-lg shadow-md hover:shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105"
+          >
+            Go to Login
           </Link>
         </div>
       </div>
