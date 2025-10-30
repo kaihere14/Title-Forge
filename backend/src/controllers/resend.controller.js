@@ -140,3 +140,144 @@ export const sendTitles = async (oldTitles, newTitles, email) => {
     return { success: false, error: error.message };
   }
 };
+
+export const forgotPasswordEmail = async (otp, email) => {
+  if (!process.env.RESEND_API) {
+    throw new Error("RESEND_API environment variable is not defined");
+  }
+  try {
+    const message = await resend.emails.send({
+      from: "Title Forge <no-reply@pawpick.store>",
+      subject: `Reset Your Password`,
+      to: email,
+      html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Reset</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  
+  <!-- Container -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; padding: 60px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%;">
+          
+          <!-- Logo Header -->
+          <tr>
+            <td align="center" style="padding-bottom: 48px;">
+              <span style="color: #000000; font-size: 24px; font-weight: 600; letter-spacing: -0.5px;">TitleForge</span>
+            </td>
+          </tr>
+          
+          <!-- Main Card -->
+          <tr>
+            <td>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px;">
+                
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 48px;">
+                    
+                    <!-- Title -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding-bottom: 12px;">
+                          <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #000000; line-height: 1.3;">
+                            Reset your password
+                          </h1>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Description -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding-bottom: 32px;">
+                          <p style="margin: 0; font-size: 15px; color: #6b7280; line-height: 1.6;">
+                            We received a request to reset your password. Use the verification code below to continue.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- OTP Code -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding: 32px 0;">
+                          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 24px; text-align: center;">
+                                <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 500;">
+                                  Verification Code
+                                </div>
+                                <div style="font-size: 32px; font-weight: 600; color: #000000; letter-spacing: 8px; font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;">
+                                  ${otp}
+                                </div>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Expiry Info -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding-bottom: 32px;">
+                          <p style="margin: 0; font-size: 13px; color: #6b7280; line-height: 1.5; text-align: center;">
+                            This code will expire in 10 minutes.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Divider -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding: 24px 0; border-top: 1px solid #f3f4f6;">
+                          <p style="margin: 0; font-size: 13px; color: #9ca3af; line-height: 1.6;">
+                            If you didn't request a password reset, you can safely ignore this email.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                  </td>
+                </tr>
+                
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 32px 20px 0 20px;">
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #9ca3af;">
+                <a href="mailto:support@pawpick.store" style="color: #6b7280; text-decoration: none;">Contact Support</a>
+              </p>
+              <p style="margin: 0; font-size: 12px; color: #d1d5db;">
+                © 2025 TitleForge. All rights reserved.
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+  
+</body>
+</html>
+      `,
+    });
+
+    return { success: true, message };
+  } catch (error) {
+    console.error("❌ Failed to send OTP email:", error);
+    return { success: false, error: error.message };
+  }
+};

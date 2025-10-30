@@ -28,6 +28,8 @@ const userSchema = new Schema(
       type: Number,
       default: 1,
     },
+    otp: { type: Number },
+    otpExpiry: { type: Date },
   },
   { timestamps: true }
 );

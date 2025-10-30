@@ -141,4 +141,33 @@ export const deleteUser = async(req,res) => {
 }
 
 
+export const forgotPassword = async (req,res) => {
+
+  const { email, newPassword, otp } = req.body;
+  try {
+    if (!email || !newPassword || !otp) {
+      return res.status(400).json({ message: "Email, new password and OTP are required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    } 
+  
+    if (user.otp != otp || user.otpExpiry < Date.now()) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    user.password = newPassword;
+    user.otp = null;
+    user.otpExpiry = null;
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
 export default { register, login, logout, getUserDetail };

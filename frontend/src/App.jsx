@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import PaymentVerify from "./pages/payment-veirfy";
 import Success from "./pages/Success";
 import Failure from "./pages/Failure";
+import Forgot_password from "./pages/Forgot-password";
 
 const App = () => {
   return (
@@ -30,6 +31,7 @@ const App = () => {
         />
         <Route path="/success" element={<Success />} />
         <Route path="/failure" element={<Failure />} />
+        <Route path="/forgot-password" element={<Forgot_password />} />
       </Routes>
     </div>
   );
