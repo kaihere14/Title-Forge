@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
+import Payment from "../models/payment.model.js";
 import { redis } from "../db/redis.db.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -127,6 +128,7 @@ export const deleteUser = async(req,res) => {
   const id = req.userId;
   try {
     const user = await User.findByIdAndDelete(id);
+    const payment = await Payment.deleteMany({userId: id});
     if(!user) {
       return res.status(404).json({message:"User not found"});
     }
