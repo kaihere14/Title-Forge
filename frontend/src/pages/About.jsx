@@ -1,4 +1,5 @@
 import React from "react";
+import Meta from "../components/Meta";
 import { useUser } from "../context/userContext";
 import { useNavigate } from "react-router-dom";
 
@@ -7,6 +8,11 @@ const About = () => {
   const navigate = useNavigate();
   return (
     <div className="w-full min-h-screen bg-white">
+      <Meta
+        title="About — TitleForge"
+        description="About TitleForge — AI-powered YouTube title optimization to help creators craft engaging, SEO-friendly titles."
+        url="https://title-forge.vercel.app/about"
+      />
       {/* Hero Section */}
       <div className="text-center max-w-4xl mx-auto px-6 py-20 md:py-32">
         <div className="inline-flex items-center gap-2 text-sm text-gray-500 mb-8 text-center bg-[#E1FF04] py-2 px-4 rounded-full">
