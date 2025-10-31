@@ -13,7 +13,7 @@ const port = 3000;
 app.set("trust proxy", 1);
 app.use(
   cors({
-    origin: ["https://title-forge.vercel.app", "http://localhost:5173"],
+    origin: ["https://title-forge.vercel.app", "http://localhost:5173", "https://titleforge.me","https://www.titleforge.me"],
     credentials: true,
   })
 );
