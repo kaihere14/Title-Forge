@@ -24,6 +24,8 @@ export const register = async (req, res) => {
         .json({ message: "username, email and password are required" });
     }
 
+
+
     const existing = await User.findOne({ email });
     if (existing)
       return res.status(409).json({ message: "Email already in use" });
@@ -50,7 +52,6 @@ export const login = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
-
 
 
     const valid = await user.verifyPassword(password);
