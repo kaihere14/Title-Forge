@@ -11,7 +11,7 @@ The Nityasha API allows you to generate AI-optimized YouTube video titles for an
 ### Base URL
 
 ```
-https://titleforge.me/
+https://backend.titleforge.me
 ```
 
 ### Endpoint
@@ -68,7 +68,7 @@ x-api-key: YOUR_API_KEY_HERE
 #### cURL
 
 ```bash
-curl -X POST https://titleforge.me/api/nityasha/generate \
+curl -X POST https://backend.titleforge.me/api/nityasha/generate \
   -H "Content-Type: application/json" \
   -H "x-api-key: YOUR_API_KEY_HERE" \
   -d '{
@@ -80,7 +80,7 @@ curl -X POST https://titleforge.me/api/nityasha/generate \
 
 ```javascript
 const response = await fetch(
-  "https://titleforge.me/api/nityasha/generate",
+  "https://backend.titleforge.me/api/nityasha/generate",
   {
     method: "POST",
     headers: {
@@ -102,7 +102,7 @@ console.log(data);
 ```python
 import requests
 
-url = 'https://your-backend-domain.com/api/nityasha/generate'
+url = 'https://backend.titleforge.me/api/nityasha/generate'
 headers = {
     'Content-Type': 'application/json',
     'x-api-key': 'YOUR_API_KEY_HERE'
@@ -246,9 +246,7 @@ print(data)
 
 For API access, issues, or questions:
 
-- **Email**: support@titleforge.com
-- **Documentation**: https://titleforge.com/docs
-- **Status Page**: https://status.titleforge.com
+- **Email**: armanthakur200814@gmail.com  
 
 ---
 
@@ -274,7 +272,7 @@ const channels = ["channel1", "channel2", "channel3"];
 
 for (const channel of channels) {
   const response = await fetch(
-    "https://api.titleforge.com/api/nityasha/generate",
+    "https://backend.titleforge.me/api/nityasha/generate",
     {
       method: "POST",
       headers: {

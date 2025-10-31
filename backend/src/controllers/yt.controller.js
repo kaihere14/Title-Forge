@@ -20,10 +20,16 @@ export const getYoutubeId = async (req, res) => {
     const response = await axios.get(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${channelName}&key=${apiKey}`
     );
+    if (!response.data.items || response.data.items.length === 0) {
+      return res.status(404).json({ error: "Channel not found" });
+    }
     const channelId = response.data.items[0].id.channelId;
     const response2 = await axios.get(
       `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelId}&key=${apiKey}`
     );
+    if (!response2.data.items || response2.data.items.length === 0) {
+      return res.status(404).json({ error: "Channel details not found" });
+    }
     const uploadsPlaylistId =
       response2.data.items[0].contentDetails.relatedPlaylists.uploads;
     const { answer, value } = await latestVideos(uploadsPlaylistId, channelId);

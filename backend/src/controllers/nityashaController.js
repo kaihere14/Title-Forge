@@ -9,16 +9,23 @@ export const nityashaGetYoutubeId = async (req, res) => {
     return res.status(400).json({ error: "Name is required" });
   }
   const channelName = name.toString().trim();
+  const encodedChannelName = encodeURIComponent(channelName)
   const apiKey = process.env.YOUTUBE_API_KEY;
 
   try {
     const response = await axios.get(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${channelName}&key=${apiKey}`
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodedChannelName}&key=${apiKey}`
     );
+    if (!response.data.items || response.data.items.length === 0) {
+      return res.status(404).json({ error: "Channel not found" });
+    }
     const channelId = response.data.items[0].id.channelId;
     const response2 = await axios.get(
       `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelId}&key=${apiKey}`
     );
+    if (!response2.data.items || response2.data.items.length === 0) {
+      return res.status(404).json({ error: "Channel details not found" });
+    }
     const uploadsPlaylistId =
       response2.data.items[0].contentDetails.relatedPlaylists.uploads;
     const { answer, value } = await nityashaLatestVideos(uploadsPlaylistId, channelId);
