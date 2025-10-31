@@ -19,7 +19,7 @@ const Home = () => {
         title="Get More Views — TitleForge"
         description="Leverage AI to transform your YouTube video titles into clickable, search-optimized masterpieces with TitleForge."
         image="https://i.postimg.cc/TYQsxx9Y/logo2.png"
-        url="https://title-forge.vercel.app/"
+        url="https://titleforge.me/"
       />
       <div className="text-2xl w-full h-fit flex flex-col gap-3  mt-20 md:mt-30 items-center">
         <div className="text-center bg-[#E1FF04] py-2 px-4 rounded-full ">

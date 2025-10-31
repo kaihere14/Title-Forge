@@ -7,7 +7,7 @@ const Pricing = () => {
       <Meta
         title="Pricing — TitleForge"
         description="Choose a plan that fits your needs — TitleForge offers Starter and Pro plans for creators seeking more credits and features."
-        url="https://title-forge.vercel.app/pricing"
+        url="https://titleforge.me/pricing"
       />
       <PricingSection />
     </div>
