@@ -170,4 +170,7 @@ export const forgotPassword = async (req,res) => {
   }
 }
 
+
+
+
 export default { register, login, logout, getUserDetail };
