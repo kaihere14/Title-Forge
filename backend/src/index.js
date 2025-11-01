@@ -6,6 +6,7 @@ import payment from "./routes/paymentRoute.js";
 import { connectDB } from "./db/database.js";
 import cookieParser from "cookie-parser";
 import nityashaRoute from "./routes/nityashaRoute.js";
+
 import cors from "cors";
 const app = express();
 const port = 3000;
