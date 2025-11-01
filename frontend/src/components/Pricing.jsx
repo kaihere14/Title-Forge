@@ -1,6 +1,7 @@
 import { CheckIcon } from "@heroicons/react/20/solid";
 import axios from "axios";
 import { useState } from "react";
+import { useUser } from "../context/userContext";
 
 const tiers = [
   {
@@ -37,23 +38,79 @@ const tiers = [
   },
 ];
 
-const initiatePayment = async (amount) => {
+const createRazorpayOrder = async (
+  amount,
+  tierName,
+  tierDescription,
+  userName,
+  userEmail
+) => {
   try {
-    const response = await axios.post(
-      `${import.meta.env.VITE_BACKEND_DOMAIN}/api/payment/create-payment`,
-      {
-        amount,
-      },
+    const options = {
+      amount: amount, // amount in the smallest currency unit
+    };
+    console.log("Creating Razorpay order with options:", options);
+    const order = await axios.post(
+      `${import.meta.env.VITE_BACKEND_DOMAIN}/api/payment/razorcreate-order`,
+      options,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       }
     );
-    const { checkoutPageUrl } = response.data;
-    window.location.href = checkoutPageUrl;
+    if (order) {
+      console.log("Razorpay order created:", order.data.order.id);
+    }
+
+    const options2 = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Replace with your Razorpay key_id
+      amount: order.data.order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+      currency: "INR",
+      name: "Title Forge",
+      description: `${tierName} Plan - ${tierDescription}`,
+      order_id: order.data.order.id, // This is the order_id created in the backend
+      prefill: {
+        name: userName || "User",
+        email: userEmail || "user@example.com",
+      },
+      handler: async function (response) {
+        // Razorpay returns these three fields:
+        const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
+          response;
+
+        // Redirect to your verify page with query params
+        const verify = await axios.post(
+          `${
+            import.meta.env.VITE_BACKEND_DOMAIN
+          }/api/payment/verifyrazorpay-payment`,
+          {
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature,
+            amount,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            },
+          }
+        );
+        if (verify.data.redirectUrl) {
+          window.location.href = verify.data.redirectUrl;
+        } else {
+          alert("Payment verification failed. Please try again.");
+        }
+      },
+      theme: {
+        color: "#F37254",
+      },
+    };
+
+    const rzp = new window.Razorpay(options2);
+    rzp.open();
   } catch (error) {
-    console.error("Error initiating payment:", error);
+    console.error("Error creating Razorpay order:", error);
     throw error;
   }
 };
@@ -64,12 +121,22 @@ function classNames(...classes) {
 
 export default function PricingSection() {
   const [loadingTier, setLoadingTier] = useState(null);
+  const { userData } = useUser();
 
   const handlePayment = async (tier) => {
     setLoadingTier(tier.id);
     try {
       const amount = tier.name === "Starter" ? 29900 : 49900; // Amount in paise
-      await initiatePayment(amount);
+      const userName = userData?.name || userData?.username || "User";
+      const userEmail = userData?.email || "user@example.com";
+
+      await createRazorpayOrder(
+        amount,
+        tier.name,
+        tier.description,
+        userName,
+        userEmail
+      );
     } catch (error) {
       console.error("Payment initiation failed:", error);
       alert("Failed to initiate payment. Please try again.");
