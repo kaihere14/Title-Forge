@@ -126,13 +126,14 @@ function classNames(...classes) {
 export default function PricingSection() {
   const [loadingTier, setLoadingTier] = useState(null);
   const { userData } = useUser();
+  console.log("User Data in PricingSection:", userData.user.email);
 
   const handlePayment = async (tier) => {
     setLoadingTier(tier.id);
     try {
       const amount = tier.name === "Starter" ? 29900 : 49900; // Amount in paise
-      const userName = userData?.name || userData?.username || "User";
-      const userEmail = userData?.email || "user@example.com";
+      const userName = userData?.user.username || userData?.username || "User";
+      const userEmail =  userData?.user.email || "user@example.com";
 
       await createRazorpayOrder(
         amount,
