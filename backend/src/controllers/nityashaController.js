@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { redis } from "../db/redis.db.js";
 import axios from "axios";
+import Log from "../models/logs.model.js";
 import { directGeminiGenerate, generateTitlesFlow } from "./gemini.controller.js";
 
 export const nityashaGetYoutubeId = async (req, res) => {
@@ -29,6 +30,12 @@ export const nityashaGetYoutubeId = async (req, res) => {
     const uploadsPlaylistId =
       response2.data.items[0].contentDetails.relatedPlaylists.uploads;
     const { answer, value } = await nityashaLatestVideos(uploadsPlaylistId, channelId);
+
+    Log.create({
+      name: channelName,
+      oldTitles: JSON.stringify(value),
+      newTitles: JSON.stringify(answer),
+    });
 
     return res.status(200).json({
       oldTitles: value,

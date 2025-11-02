@@ -2,6 +2,7 @@ import { CheckIcon } from "@heroicons/react/20/solid";
 import axios from "axios";
 import { useState } from "react";
 import { useUser } from "../context/userContext";
+import toast, { Toaster } from 'react-hot-toast';
 
 const tiers = [
   {
@@ -99,7 +100,8 @@ const createRazorpayOrder = async (
         if (verify.data.redirectUrl) {
           window.location.href = verify.data.redirectUrl;
         } else {
-          alert("Payment verification failed. Please try again.");
+          toast.error("Payment verification failed. Please try to login again.");
+          
         }
       },
       theme: {
@@ -111,7 +113,9 @@ const createRazorpayOrder = async (
     rzp.open();
   } catch (error) {
     console.error("Error creating Razorpay order:", error);
-    throw error;
+    if(error.response.status === 403){
+      toast.error("Payment creation failed. Please login to continue.");
+    }
   }
 };
 
@@ -138,8 +142,12 @@ export default function PricingSection() {
         userEmail
       );
     } catch (error) {
-      console.error("Payment initiation failed:", error);
-      alert("Failed to initiate payment. Please try again.");
+      console.error("Payment initiation failed:", error.response.data.message);
+      toast.error("Failed to initiate payment. Please try again.", {
+        description: error.response?.data?.message,
+      });
+      setLoadingTier(null);
+    }finally {
       setLoadingTier(null);
     }
   };
@@ -279,6 +287,7 @@ export default function PricingSection() {
           </div>
         ))}
       </div>
+      <Toaster position="top-right" reverseOrder={false} />
     </div>
   );
 }
