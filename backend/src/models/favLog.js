@@ -1,5 +1,5 @@
 import {Schema, model} from 'mongoose';
-import { use } from 'react';
+
 
 const favLogSchema = new Schema({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
