@@ -13,8 +13,8 @@ const paymentSchema = new Schema(
       enum: ["pending", "completed", "failed"],
       default: "pending",
     },
-    merchantOrderId: { type: String, required: true, unique: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    merchantOrderId: { type: String, required: true, unique: true , index: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
   },
   { timestamps: true }
 );
