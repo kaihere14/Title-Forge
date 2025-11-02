@@ -126,7 +126,6 @@ function classNames(...classes) {
 export default function PricingSection() {
   const [loadingTier, setLoadingTier] = useState(null);
   const { userData } = useUser();
-  console.log("User Data in PricingSection:", userData.user.email);
 
   const handlePayment = async (tier) => {
     setLoadingTier(tier.id);

@@ -2,6 +2,9 @@ import React, { useEffect, useState, useRef } from "react";
 import { useUser } from "../context/userContext";
 import { useNavigate } from "react-router-dom";
 import { DashboardLoadingSkeleton } from "../components/SkeletonLoader";
+import { CiHeart } from "react-icons/ci";
+import { FaHeart } from "react-icons/fa";
+import toast, { Toaster } from "react-hot-toast";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -16,6 +19,60 @@ const Dashboard = () => {
   const [error, setError] = useState("");
   const [resultData, setResultData] = useState(null);
   const [showResults, setShowResults] = useState(false);
+  // track liked hearts by key (e.g. "new-0" or "old-2")
+  const [liked, setLiked] = useState(() => new Set());
+  const [likeLoading, setLikeLoading] = useState(() => new Set());
+
+  const toggleLike = (key) => {
+    setLiked((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const handleToggleFav = async (key, title) => {
+    // prevent duplicate clicks
+    if (likeLoading.has(key)) return;
+
+    setLikeLoading((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+
+    try {
+      if (liked.has(key)) {
+        // attempt to remove favorite (if backend supports)
+        await api.post(`/api/user/remove-fav-log`, { title });
+        setLiked((prev) => {
+          const next = new Set(prev);
+          next.delete(key);
+          return next;
+        });
+        toast.success("Removed from favorites");
+      } else {
+        // add favorite
+        await api.post(`/api/user/save-fav-log`, { title });
+        setLiked((prev) => {
+          const next = new Set(prev);
+          next.add(key);
+          return next;
+        });
+        toast.success("Added to favorites");
+      }
+    } catch (err) {
+      console.error("Favorite toggle failed:", err);
+      toast.error(err?.response?.data?.message || "Failed to update favorites");
+    } finally {
+      setLikeLoading((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
+  };
 
   useEffect(() => {
     fetchUserData();
@@ -37,6 +94,18 @@ const Dashboard = () => {
         block: "start",
       });
     }, 100);
+
+    const saveFavLog = async (title) => {
+      try {
+        await api.post(
+          `${import.meta.env.VITE_BACKEND_URL}/api/user/save-fav-log`,
+          { title }
+        );
+        toast.success("Title added to favorites!");
+      } catch (error) {
+        toast.error("Failed to add title to favorites.");
+      }
+    };
 
     // Validation
     if (!channelName.trim()) {
@@ -68,6 +137,7 @@ const Dashboard = () => {
         emailSentTo: emailToUse,
       });
       setShowResults(true);
+      setLiked(new Set()); // reset liked state
       setError("");
     } catch (err) {
       setError(
@@ -82,7 +152,7 @@ const Dashboard = () => {
 
   const handleCopyTitle = (title) => {
     navigator.clipboard.writeText(title);
-    // You could add a toast notification here
+    toast.success("Title copied to clipboard!");
   };
 
   return (
@@ -337,35 +407,78 @@ const Dashboard = () => {
                 </div>
 
                 <div className="space-y-3">
-                  {resultData.newTitles.map((title, index) => (
-                    <div
-                      key={`new-${index}`}
-                      className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-100 hover:border-green-300 transition-colors group"
-                    >
-                      <p className="text-gray-900 flex-1 font-medium">
-                        {title}
-                      </p>
-                      <button
-                        onClick={() => handleCopyTitle(title)}
-                        className="ml-4 text-green-400 hover:text-green-600 transition-colors opacity-0 group-hover:opacity-100"
-                        title="Copy to clipboard"
+                  {resultData.newTitles.map((title, index) => {
+                    const keyId = `new-${index}`;
+                    const isLiked = liked.has(keyId);
+                    return (
+                      <div
+                        key={keyId}
+                        className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-100 hover:border-green-300 transition-colors group"
                       >
-                        <svg
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
+                        <p className="text-gray-900 flex-1 font-medium">
+                          {title}
+                        </p>
+                        <div className="flex items-center">
+                          <button
+                            onClick={() => handleCopyTitle(title)}
+                            className="ml-4 text-green-400 hover:text-green-600 transition-colors opacity-0 group-hover:opacity-100"
+                            title="Copy to clipboard"
+                          >
+                            <svg
+                              className="h-5 w-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                              />
+                            </svg>
+                          </button>
+
+                          {likeLoading.has(keyId) ? (
+                            <svg
+                              className="animate-spin ml-2 h-5 w-5 text-gray-500"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              />
+                            </svg>
+                          ) : isLiked ? (
+                            <FaHeart
+                              onClick={() => handleToggleFav(keyId, title)}
+                              className="inline-block ml-2 text-red-500 text-2xl cursor-pointer transition-transform"
+                              title="Unlike"
+                              aria-label="unlike"
+                            />
+                          ) : (
+                            <CiHeart
+                              onClick={() => handleToggleFav(keyId, title)}
+                              className="inline-block ml-2 text-gray-400 hover:text-red-500 text-2xl cursor-pointer transition-transform"
+                              title="Like"
+                              aria-label="like"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <div className="mt-6 pt-6 border-t border-gray-100">
@@ -493,6 +606,7 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+      <Toaster position="top-right" reverseOrder={false} />
     </div>
   );
 };

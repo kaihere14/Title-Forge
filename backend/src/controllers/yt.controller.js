@@ -7,9 +7,15 @@ import {
 import User from "../models/user.model.js";
 import { sendTitles } from "./resend.controller.js";
 import { redis } from "../db/redis.db.js";
+import FavLog from "../models/favLog.js";
 
 export const getYoutubeId = async (req, res) => {
   const { name, email } = req.body;
+  const userId = req.userId;
+  if (!userId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  const favLogs = await FavLog.find({ userId }).sort({ createdAt: -1 }).limit(10);
   if (!name || !email) {
     return res.status(400).json({ error: "Name and email are required" });
   }
@@ -32,7 +38,7 @@ export const getYoutubeId = async (req, res) => {
     }
     const uploadsPlaylistId =
       response2.data.items[0].contentDetails.relatedPlaylists.uploads;
-    const { answer, value } = await latestVideos(uploadsPlaylistId, channelId);
+    const { answer, value } = await latestVideos(uploadsPlaylistId, channelId , favLogs);
     await sendTitles(value, answer, email);
     const userId = req.userId;
     await redis.del(`user_info:${userId}`);
@@ -52,7 +58,7 @@ export const getYoutubeId = async (req, res) => {
   }
 };
 
-export const latestVideos = async (uploadsPlaylistId, channelId) => {
+export const latestVideos = async (uploadsPlaylistId, channelId, favLogs) => {
   const apiKey = process.env.YOUTUBE_API_KEY;
 
   try {
@@ -68,9 +74,9 @@ export const latestVideos = async (uploadsPlaylistId, channelId) => {
     const cachedAnalysis = await redis.get(`channel_analysis:${channelId}`);
     if (cachedAnalysis) {
       console.log("Using cached analysis for channel:", channelId);
-      answer = await directGeminiGenerate(JSON.parse(cachedAnalysis));
+      answer = await directGeminiGenerate(JSON.parse(cachedAnalysis),favLogs);
     } else {
-      answer = await generateTitlesFlow(value, channelId);
+      answer = await generateTitlesFlow(value, channelId  , favLogs);
     }
     return { answer, value };
   } catch (error) {

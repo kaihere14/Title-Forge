@@ -7,6 +7,9 @@ import {
   tokenRefresh,
   deleteUser,
   forgotPassword,
+  saveFavLog,
+  removeFavLog,
+  allFavLogs,
 } from "../controllers/useController.js";
 import { rateLimit2 } from "../middlewares/rateLimit copy.js";
 import verifyJWT from "../middlewares/veirfyJWT.js";
@@ -22,5 +25,8 @@ router.post("/refresh-token", rateLimit2, tokenRefresh);
 router.delete("/me", verifyJWT, deleteUser);
 router.post("/generate-otp", generateOTP);
 router.post("/forgot-password", forgotPassword);
+router.post("/save-fav-log", verifyJWT, saveFavLog);
+router.post("/remove-fav-log", verifyJWT, removeFavLog);
+router.get("/all-fav-logs", verifyJWT, allFavLogs);
 
 export default router;

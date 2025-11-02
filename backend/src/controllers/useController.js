@@ -2,6 +2,7 @@ import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import Payment from "../models/payment.model.js";
 import { redis } from "../db/redis.db.js";
+import FavLog from "../models/favLog.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -172,6 +173,48 @@ export const forgotPassword = async (req,res) => {
 }
 
 
+export const saveFavLog = async (req, res) => {
+  const userId = req.userId;
+  const { title } = req.body;
 
+  try {
+    const existingLog = await FavLog.findOne({ userId, title });
+    if (existingLog) {
+      return res.status(409).json({ message: "Favorite log already exists" });
+    }
+    const favLog = new FavLog({ userId, title });
+    await favLog.save();
+    res.status(201).json({ message: "Favorite log saved", favLog });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
-export default { register, login, logout, getUserDetail };
+export const removeFavLog = async (req, res) => {
+  const userId = req.userId;
+  const { title } = req.body;
+  try {
+    const result = await FavLog.findOneAndDelete({ userId, title });
+    if (!result) {
+      return res.status(404).json({ message: "Favorite log not found" });
+    }
+    res.status(200).json({ message: "Favorite log removed" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  } 
+};
+
+export const allFavLogs = async (req, res) => {
+  const userId = req.userId;
+  try {
+    const favLogs = await FavLog.find({ userId });
+    res.status(200).json({ favLogs });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export default { register, login, logout, getUserDetail, allFavLogs };

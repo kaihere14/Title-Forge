@@ -55,7 +55,8 @@ const sanitizeTitle = (text) => {
     .trim();
 };
 
-export const generateTitlesFlow = async (titles, channelId) => {
+export const generateTitlesFlow = async (titles, channelId,favLogs) => {
+  console.log("favorites logs are:", favLogs);
   if (!Array.isArray(titles) || titles.length === 0) {
     throw new Error("Please provide an array of titles");
   }
@@ -123,6 +124,9 @@ Output JSON only:
     }
 
     const geminiPrompt = `
+   ${favLogs.length > 0 && `User's favorite logs:
+${favLogs.map((log, index) => `${index + 1}. ${log.title}`).join("\n")} used as inspiration to rewrite all 5 titles.
+`}
 Rewrite each of these titles for maximum YouTube CTR.
 Rules:
 - Keep core meaning.
@@ -156,10 +160,13 @@ ${analysis.map((a) => `Title: ${a.title}`).join("\n")}
   }
 };
 
-export const directGeminiGenerate = async (analysis) => {
+export const directGeminiGenerate = async (analysis,favLogs) => {
   console.log("Generating titles for channel:");
 
   const geminiPrompt = `
+   ${favLogs.length > 0 && `User's favorite logs:
+${favLogs.map((log, index) => `${index + 1}. ${log.title}`).join("\n")} used as inspiration to rewrite all 5 titles.
+`}
 Rewrite each of these titles for maximum YouTube CTR.
 Rules:
 - Keep core meaning.

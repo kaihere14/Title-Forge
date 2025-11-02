@@ -2,23 +2,46 @@ import React, { useEffect, useState } from "react";
 import { useUser } from "../context/userContext";
 import { Link } from "react-router";
 import axios from "axios";
+import { FaHeart } from "react-icons/fa";
 
 const Profile = () => {
   const { userData, fetchUserData, isLoggedIn } = useUser();
   const [isLoading, setIsLoading] = useState(true);
   const [paymentHistory, setPaymentHistory] = useState([]);
+  const [showAllPayments, setShowAllPayments] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [favLogs, setFavLogs] = useState([]);
+  const [favLoading, setFavLoading] = useState(() => new Set());
+  const [showAllFavs, setShowAllFavs] = useState(false);
 
   useEffect(() => {
     const loadUserData = async () => {
       fetchUserData();
       paymentHistorHandler();
+      fetchFavLogs();
       setIsLoading(false);
     };
     loadUserData();
   }, []);
+
+  const fetchFavLogs = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_DOMAIN}/api/user/all-fav-logs`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }
+      );
+      setFavLogs(response.data.favLogs || []);
+      // Process the favorite logs as needed
+    } catch (error) {
+      console.error("Error fetching favorite logs:", error);
+    }
+  };
 
   const deleteAccountHandler = async () => {
     if (deleteConfirmText !== "delete") {
@@ -75,17 +98,17 @@ const Profile = () => {
         <div className="text-center">
           <div className="mb-6">
             <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full mx-auto flex items-center justify-center shadow-lg">
-              <svg 
-                className="w-10 h-10 text-white" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className="w-10 h-10 text-white"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                 />
               </svg>
             </div>
@@ -96,8 +119,8 @@ const Profile = () => {
           <p className="text-gray-600 mb-8 max-w-sm mx-auto">
             Please log in to access your account and continue
           </p>
-          <Link 
-            to="/login" 
+          <Link
+            to="/login"
             className="inline-block bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold px-8 py-3 rounded-lg shadow-md hover:shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105"
           >
             Go to Login
@@ -331,131 +354,311 @@ const Profile = () => {
           </div>
 
           {/* Payment History Card */}
+          {/* Favorites Card */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              Favorites
+            </h2>
+            {favLogs && favLogs.length > 0 ? (
+              (() => {
+                const sortedFavs = favLogs
+                  .slice()
+                  .sort(
+                    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+                  );
+                const favsToShow = showAllFavs
+                  ? sortedFavs
+                  : sortedFavs.slice(0, 3);
+
+                return (
+                  <div>
+                    <div className="space-y-3">
+                      {favsToShow.map((fav) => (
+                        <div
+                          key={fav._id}
+                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors"
+                        >
+                          <div>
+                            <h3 className="font-semibold text-gray-900">
+                              {fav.title}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              {new Date(fav.createdAt).toLocaleDateString()} at{" "}
+                              {new Date(fav.createdAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            {favLoading.has(fav._id) ? (
+                              <svg
+                                className="animate-spin ml-2 h-5 w-5 text-gray-500"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                />
+                              </svg>
+                            ) : (
+                              <button
+                                onClick={async () => {
+                                  if (favLoading.has(fav._id)) return;
+                                  setFavLoading((prev) => {
+                                    const next = new Set(prev);
+                                    next.add(fav._id);
+                                    return next;
+                                  });
+                                  try {
+                                    await axios.post(
+                                      `${
+                                        import.meta.env.VITE_BACKEND_DOMAIN
+                                      }/api/user/remove-fav-log`,
+                                      { title: fav.title },
+                                      {
+                                        headers: {
+                                          Authorization: `Bearer ${localStorage.getItem(
+                                            "accessToken"
+                                          )}`,
+                                        },
+                                      }
+                                    );
+                                    setFavLogs((prev) =>
+                                      prev.filter((f) => f._id !== fav._id)
+                                    );
+                                  } catch (err) {
+                                    console.error(
+                                      "Failed to remove favorite:",
+                                      err
+                                    );
+                                    alert(
+                                      "Failed to remove favorite. Please try again."
+                                    );
+                                  } finally {
+                                    setFavLoading((prev) => {
+                                      const next = new Set(prev);
+                                      next.delete(fav._id);
+                                      return next;
+                                    });
+                                  }
+                                }}
+                                className="inline-flex items-center gap-2 text-sm text-red-600 hover:text-red-700 bg-red-50 px-3 py-1 rounded-md"
+                              >
+                                <FaHeart /> Remove
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {favLogs.length > 3 && (
+                      <div className="mt-4 text-center">
+                        <button
+                          onClick={() => setShowAllFavs((s) => !s)}
+                          className="text-sm text-gray-900 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                        >
+                          {showAllFavs
+                            ? "Show less"
+                            : `Show all (${favLogs.length})`}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg
+                    className="h-8 w-8 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  No Favorites
+                </h3>
+                <p className="text-sm text-gray-600 mb-6">
+                  You haven't favorited any titles yet. Generate titles and
+                  click the heart to save favorites.
+                </p>
+              </div>
+            )}
+          </div>
           <div className="bg-white border border-gray-200 rounded-2xl p-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
               Payment History
             </h2>
-
             {paymentHistory && paymentHistory.length > 0 ? (
-              <div className="space-y-3">
-                {paymentHistory.map((payment) => (
-                  <div
-                    key={payment._id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      {/* Status Icon */}
-                      <div
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          payment.status === "completed"
-                            ? "bg-green-100"
-                            : payment.status === "failed"
-                            ? "bg-red-100"
-                            : "bg-yellow-100"
-                        }`}
-                      >
-                        {payment.status === "completed" ? (
-                          <svg
-                            className="h-5 w-5 text-green-600"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        ) : payment.status === "failed" ? (
-                          <svg
-                            className="h-5 w-5 text-red-600"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="h-5 w-5 text-yellow-600"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                        )}
-                      </div>
+              (() => {
+                // show newest payments first
+                const sorted = paymentHistory
+                  .slice()
+                  .sort(
+                    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+                  );
+                const paymentsToShow = showAllPayments
+                  ? sorted
+                  : sorted.slice(0, 3);
 
-                      {/* Payment Details */}
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-gray-900 capitalize">
-                            {payment.plan} Plan
-                          </h3>
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                              payment.status === "completed"
-                                ? "bg-green-100 text-green-800"
-                                : payment.status === "failed"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }`}
-                          >
-                            {payment.status.charAt(0).toUpperCase() +
-                              payment.status.slice(1)}
-                          </span>
+                return (
+                  <div>
+                    <div className="space-y-3">
+                      {paymentsToShow.map((payment) => (
+                        <div
+                          key={payment._id}
+                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors"
+                        >
+                          <div className="flex items-center gap-4">
+                            {/* Status Icon */}
+                            <div
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                                payment.status === "completed"
+                                  ? "bg-green-100"
+                                  : payment.status === "failed"
+                                  ? "bg-red-100"
+                                  : "bg-yellow-100"
+                              }`}
+                            >
+                              {payment.status === "completed" ? (
+                                <svg
+                                  className="h-5 w-5 text-green-600"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              ) : payment.status === "failed" ? (
+                                <svg
+                                  className="h-5 w-5 text-red-600"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              ) : (
+                                <svg
+                                  className="h-5 w-5 text-yellow-600"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+
+                            {/* Payment Details */}
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-gray-900 capitalize">
+                                  {payment.plan} Plan
+                                </h3>
+                                <span
+                                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                    payment.status === "completed"
+                                      ? "bg-green-100 text-green-800"
+                                      : payment.status === "failed"
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-yellow-100 text-yellow-800"
+                                  }`}
+                                >
+                                  {payment.status.charAt(0).toUpperCase() +
+                                    payment.status.slice(1)}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-600">
+                                {new Date(payment.createdAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                  }
+                                )}{" "}
+                                at{" "}
+                                {new Date(payment.createdAt).toLocaleTimeString(
+                                  "en-US",
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Order ID: {payment.merchantOrderId}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Amount */}
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-gray-900">
+                              ₹{(payment.amount / 100).toFixed(2)}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {payment.plan === "starter"
+                                ? "+10 credits"
+                                : "+50 credits"}
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-sm text-gray-600">
-                          {new Date(payment.createdAt).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            }
-                          )}{" "}
-                          at{" "}
-                          {new Date(payment.createdAt).toLocaleTimeString(
-                            "en-US",
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Order ID: {payment.merchantOrderId}
-                        </p>
-                      </div>
+                      ))}
                     </div>
 
-                    {/* Amount */}
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-gray-900">
-                        ₹{(payment.amount / 100).toFixed(2)}
+                    {paymentHistory.length > 3 && (
+                      <div className="mt-4 text-center">
+                        <button
+                          onClick={() => setShowAllPayments((s) => !s)}
+                          className="text-sm text-gray-900 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                        >
+                          {showAllPayments
+                            ? "Show less"
+                            : `Show all (${paymentHistory.length})`}
+                        </button>
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {payment.plan === "starter"
-                          ? "+10 credits"
-                          : "+50 credits"}
-                      </div>
-                    </div>
+                    )}
                   </div>
-                ))}
-              </div>
+                );
+              })()
             ) : (
               <div className="text-center py-8">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
