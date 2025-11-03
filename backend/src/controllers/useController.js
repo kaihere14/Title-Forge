@@ -18,19 +18,21 @@ function signToken(userId) {
 
 export const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
-    if (!username || !email || !password) {
+    const { username, email, password,otp } = req.body;
+    if (!username || !email || !password || !otp) {
       return res
         .status(400)
-        .json({ message: "username, email and password are required" });
+        .json({ message: "username, email, password and otp are required" });
     }
-
-
 
     const existing = await User.findOne({ email });
     if (existing)
       return res.status(409).json({ message: "Email already in use" });
-
+    const verifyOtp = await redis.get(`register_otp_${email}`);
+    if (!verifyOtp || verifyOtp !== otp) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+    await redis.del(`register_otp_${email}`);
     const user = await User.create({ username, email, password });
     const { accessToken, refreshToken } = signToken(user._id);
 

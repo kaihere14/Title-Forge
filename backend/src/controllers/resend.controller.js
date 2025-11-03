@@ -141,6 +141,191 @@ export const sendTitles = async (oldTitles, newTitles, email) => {
   }
 };
 
+export const registrationEmail = async (otp, email) => {
+  if (!process.env.RESEND_API) {
+    throw new Error("RESEND_API environment variable is not defined");
+  }
+  try {
+    const message = await resend.emails.send({
+      from: "Title Forge <no-reply@pawpick.store>",
+      subject: `Welcome to TitleForge - Verify Your Account`,
+      to: email,
+      html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to TitleForge</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  
+  <!-- Container -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; padding: 60px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%;">
+          
+          <!-- Logo Header -->
+          <tr>
+            <td align="center" style="padding-bottom: 48px;">
+              <span style="color: #000000; font-size: 24px; font-weight: 600; letter-spacing: -0.5px;">TitleForge</span>
+            </td>
+          </tr>
+          
+          <!-- Main Card -->
+          <tr>
+            <td>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px;">
+                
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 48px;">
+                    
+                    <!-- Welcome Badge -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="center" style="padding-bottom: 24px;">
+                          <div style="display: inline-block; padding: 8px 16px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px;">
+                            <span style="color: #16a34a; font-size: 13px; font-weight: 500;">🎉 Welcome aboard!</span>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Title -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding-bottom: 12px; text-align: center;">
+                          <h1 style="margin: 0; font-size: 28px; font-weight: 600; color: #000000; line-height: 1.3;">
+                            Verify your account
+                          </h1>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Description -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding-bottom: 32px; text-align: center;">
+                          <p style="margin: 0; font-size: 15px; color: #6b7280; line-height: 1.6;">
+                            Thanks for joining TitleForge! To get started, please verify your email address using the code below.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- OTP Code -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding: 32px 0;">
+                          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 24px; text-align: center;">
+                                <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 500;">
+                                  Verification Code
+                                </div>
+                                <div style="font-size: 32px; font-weight: 600; color: #000000; letter-spacing: 8px; font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;">
+                                  ${otp}
+                                </div>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Expiry Info -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding-bottom: 32px;">
+                          <p style="margin: 0; font-size: 13px; color: #6b7280; line-height: 1.5; text-align: center;">
+                            This code will expire in 10 minutes.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Features Info Box -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding: 24px; background-color: #f9fafb; border-radius: 8px; margin-bottom: 24px;">
+                          <p style="margin: 0 0 16px 0; font-size: 14px; color: #111827; font-weight: 600; text-align: center;">
+                            What you'll get with TitleForge:
+                          </p>
+                          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td style="padding: 8px 0; font-size: 13px; color: #6b7280; line-height: 1.6;">
+                                ✨ AI-powered title optimization
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding: 8px 0; font-size: 13px; color: #6b7280; line-height: 1.6;">
+                                📈 Boost engagement & discoverability
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding: 8px 0; font-size: 13px; color: #6b7280; line-height: 1.6;">
+                                ⚡ Real-time title analysis
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding: 8px 0; font-size: 13px; color: #6b7280; line-height: 1.6;">
+                                💾 Save your favorite titles
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Divider -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding: 24px 0; border-top: 1px solid #f3f4f6;">
+                          <p style="margin: 0; font-size: 13px; color: #9ca3af; line-height: 1.6; text-align: center;">
+                            Didn't create an account? You can safely ignore this email.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                  </td>
+                </tr>
+                
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 32px 20px 0 20px;">
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #9ca3af;">
+                Need help? <a href="mailto:support@pawpick.store" style="color: #6b7280; text-decoration: none;">Contact Support</a>
+              </p>
+              <p style="margin: 0; font-size: 12px; color: #d1d5db;">
+                © 2025 TitleForge. All rights reserved.
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+  
+</body>
+</html>
+      `,
+    });
+
+    return { success: true, message };
+  } catch (error) {
+    console.error("❌ Failed to send registration email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
 export const forgotPasswordEmail = async (otp, email) => {
   if (!process.env.RESEND_API) {
     throw new Error("RESEND_API environment variable is not defined");

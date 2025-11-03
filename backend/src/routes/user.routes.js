@@ -13,7 +13,7 @@ import {
 } from "../controllers/useController.js";
 import { rateLimit2 } from "../middlewares/rateLimit copy.js";
 import verifyJWT from "../middlewares/veirfyJWT.js";
-import { generateOTP } from "../controllers/otp.controller.js";
+import { generateOTP, registerOTP } from "../controllers/otp.controller.js";
 
 const router = Router();
 
@@ -28,5 +28,6 @@ router.post("/forgot-password", forgotPassword);
 router.post("/save-fav-log", verifyJWT, saveFavLog);
 router.post("/remove-fav-log", verifyJWT, removeFavLog);
 router.get("/all-fav-logs", verifyJWT, allFavLogs);
+router.post("/register-otp", registerOTP);
 
 export default router;
