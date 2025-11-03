@@ -12,9 +12,16 @@ const razorpayInstance = new Razorpay({
 
 export const fetchAllPaymennts = async (req, res) => {
   try {
+    const cachedPayments = await redis.get(`payment_info:${req.userId}`);
+    if (cachedPayments){
+      return res
+        .status(200)
+        .json({ payments: JSON.parse(cachedPayments) });
+    }
     const payments = await Payment.find({ userId: req.userId }).sort({
       createdAt: -1,
     });
+    await redis.set(`payment_info:${req.userId}`, JSON.stringify(payments));
     res.status(200).json({ payments });
   } catch (error) {
     console.error("Error fetching payments:", error);
@@ -57,13 +64,15 @@ export const verifyRazorpayPayment = async (req, res) => {
       .digest("hex");
     const plan = amount >= 49900 ? "pro" : "starter";
     if (generated_signature === razorpay_signature) {
-      await Payment.create({
+      const paymentInfo =  await Payment.create({
         userId: req.userId,
         merchantOrderId: razorpay_order_id,
         plan: plan,
         amount: amount,
         status: "completed",
       });
+      await redis.del(`payment_info:${req.userId}`);
+      await redis.expire(`payment_info:${req.userId}`, 3600);// expire cache after 1 hour
 
       const userId = req.userId;
       console.log("Updating subscription for user:", userId);
