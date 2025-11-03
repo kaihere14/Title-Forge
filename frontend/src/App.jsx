@@ -12,6 +12,7 @@ import PaymentVerify from "./pages/payment-veirfy";
 import Success from "./pages/Success";
 import Failure from "./pages/Failure";
 import Forgot_password from "./pages/Forgot-password";
+import Orange404Page from "./pages/404";
 
 const App = () => {
   return (
@@ -31,6 +32,7 @@ const App = () => {
         <Route path="/success" element={<Success />} />
         <Route path="/failure" element={<Failure />} />
         <Route path="/forgot-password" element={<Forgot_password />} />
+        <Route path="*" element={<Orange404Page />} />
       </Routes>
     </div>
   );

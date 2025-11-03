@@ -346,8 +346,12 @@ const Profile = () => {
 
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <div className="text-2xl font-bold text-gray-900 mb-1">
-                  {userData?.user?.daysActive || 0}
+                  {Math.floor(
+                    Math.abs(new Date() - new Date(userData?.user?.createdAt)) /
+                      (1000 * 60 * 60 * 24)
+                  )}
                 </div>
+
                 <div className="text-sm text-gray-600">Days Active</div>
               </div>
             </div>
@@ -636,8 +640,8 @@ const Profile = () => {
                             </div>
                             <div className="text-xs text-gray-500">
                               {payment.plan === "starter"
-                                ? "+10 credits"
-                                : "+50 credits"}
+                                ? "+5 credits"
+                                : "+10 credits"}
                             </div>
                           </div>
                         </div>
