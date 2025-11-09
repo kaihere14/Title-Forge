@@ -1,4 +1,4 @@
-import { redis } from "../db/redis.db.js";
+import { redis } from "../db/redis.db";
 
 const RATE_LIMIT_WINDOW_SECONDS = 60; // 1 minute
 const MAX_REQUESTS_PER_WINDOW = 20; // This is the value we'll discuss

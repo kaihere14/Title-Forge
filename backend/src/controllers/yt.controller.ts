@@ -3,11 +3,11 @@ import "dotenv/config";
 import {
   directGeminiGenerate,
   generateTitlesFlow,
-} from "./gemini.controller.js";
-import User from "../models/user.model.js";
-import { sendTitles } from "./resend.controller.js";
-import { redis } from "../db/redis.db.js";
-import FavLog from "../models/favLog.js";
+} from "./gemini.controller";
+import User from "../models/user.model";
+import { sendTitles } from "./resend.controller";
+import { redis } from "../db/redis.db";
+import FavLog from "../models/favLog";
 
 export const getYoutubeId = async (req, res) => {
   const { name, email } = req.body;

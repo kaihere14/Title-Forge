@@ -1,7 +1,7 @@
-import { redis } from "../db/redis.db.js";
-import User from "../models/user.model.js";
-import { forgotPasswordEmail } from "./resend.controller.js";
-import { registrationEmail } from "./resend.controller.js";
+import { redis } from "../db/redis.db";
+import User from "../models/user.model";
+import { forgotPasswordEmail } from "./resend.controller";
+import { registrationEmail } from "./resend.controller";
 
 export const generateOTP = async (req, res) => {
   try {

@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { getYoutubeId } from "../controllers/yt.controller.js";
-import verifyJWT from "../middlewares/veirfyJWT.js";
-import verifyCredit from "../middlewares/verifyCredit.js";
+import { getYoutubeId } from "../controllers/yt.controller";
+import verifyJWT from "../middlewares/veirfyJWT";
+import verifyCredit from "../middlewares/verifyCredit";
 
 
 

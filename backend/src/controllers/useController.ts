@@ -1,8 +1,8 @@
-import User from "../models/user.model.js";
+import User from "../models/user.model";
 import jwt from "jsonwebtoken";
-import Payment from "../models/payment.model.js";
-import { redis } from "../db/redis.db.js";
-import FavLog from "../models/favLog.js";
+import Payment from "../models/payment.model";
+import { redis } from "../db/redis.db";
+import FavLog from "../models/favLog";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
