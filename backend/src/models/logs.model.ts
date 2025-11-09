@@ -1,6 +1,15 @@
-import { Schema ,model} from "mongoose";
+import { Schema ,model ,Document} from "mongoose";
 
-const logSchema = new Schema(
+export interface ILog extends Document {
+    name: string;
+    oldTitles: string[];
+    newTitles: string[];
+    timestamp: Date;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
+const logSchema = new Schema<ILog>(
     {
         name: { type: String, required: true },
         oldTitles: { type: [String], required: true },
@@ -11,5 +20,5 @@ const logSchema = new Schema(
         timestamps: true
     }
 );
-const Log = model('Log', logSchema);
+const Log = model<ILog>("Log", logSchema);
 export default Log;

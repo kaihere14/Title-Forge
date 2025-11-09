@@ -1,12 +1,16 @@
-import {Schema, model} from 'mongoose';
+import mongoose, {Schema, model ,Document} from 'mongoose';
 
-
-const favLogSchema = new Schema({
+export interface IFavLog  extends Document{
+    userId: mongoose.Schema.Types.ObjectId;
+    title: string;
+    createdAt?: Date;
+}
+const favLogSchema = new Schema<IFavLog>({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     title: { type: String, required: true },
     createdAt: { type: Date, default: Date.now }
 });
 
-const FavLog = model('FavLog', favLogSchema);
+const FavLog = model<IFavLog>("FavLog", favLogSchema);
 
 export default FavLog;

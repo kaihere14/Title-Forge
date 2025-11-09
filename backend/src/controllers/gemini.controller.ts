@@ -1,18 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
 import Perplexity from "@perplexity-ai/perplexity_ai";
 import { redis } from "../db/redis.db";
+import { IFavLog } from "../models/favLog";
 
 const ai = new GoogleGenAI({});
 const client = new Perplexity({
   apiKey: process.env.PERPLEXITY_API_KEY,
 });
 
-export interface FavLog {
-  id: string;
-  userId: string;
-  title: string;
-  createdAt?: string | Date; // depending on how you handle it
-}
+export interface FavLog extends IFavLog {}
 export interface AnalysisItem {
   title: string;
   tone: string;

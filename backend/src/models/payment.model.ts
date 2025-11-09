@@ -1,10 +1,20 @@
-import mongoose from "mongoose";
+import mongoose , {Document} from "mongoose";
 import bcrypt from "bcrypt";
 
 const { Schema, model } = mongoose;
 const SALT_ROUNDS = 10;
 
-const paymentSchema = new Schema(
+export interface IPayment extends Document {
+  plan: string;
+  amount: number;
+  status: "pending" | "completed" | "failed";
+  merchantOrderId: string;
+  userId: mongoose.Schema.Types.ObjectId;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const paymentSchema = new Schema<IPayment>(
   {
     plan: { type: String, required: true },
     amount: { type: Number, required: true },
@@ -19,6 +29,6 @@ const paymentSchema = new Schema(
   { timestamps: true }
 );
 
-const Payment = model("Payment", paymentSchema);
+const Payment = model<IPayment>("Payment", paymentSchema);
 
 export default Payment;
