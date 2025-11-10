@@ -52,14 +52,14 @@ export const nityashaGetYoutubeId = async (req:Request, res:Response) => {
 };
 
 export const nityashaLatestVideos =async ({ uploadsPlaylistId, channelId, favLogs }: LatestVideosType) => {
-  console.log("Fetching latest videos for playlist ID:", uploadsPlaylistId);
+
   const apiKey = process.env.YOUTUBE_API_KEY;
   try {
     const response = await axios.get(
       `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=5&key=${apiKey}`
     );
     const videoData = response.data.items as YouTubePlaylistItem[];
-    console.log("Fetched video data:", videoData);
+
     const value:string[]= [];
     videoData.map((val, index) => {
       value.push(val.snippet.title);
@@ -72,7 +72,7 @@ export const nityashaLatestVideos =async ({ uploadsPlaylistId, channelId, favLog
     } else {
       answer = await generateTitlesFlow(value, channelId  , favLogs);
     }
-    console.log("Generated new titles:", answer);
+
     return { answer, value };
   } catch (error) {
     console.error("Error fetching latest videos:", (error as Error).message);
