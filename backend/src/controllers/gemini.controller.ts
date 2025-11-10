@@ -3,10 +3,25 @@ import Perplexity from "@perplexity-ai/perplexity_ai";
 import { redis } from "../db/redis.db";
 import { IFavLog } from "../models/favLog";
 
-const ai = new GoogleGenAI({});
-const client = new Perplexity({
-  apiKey: process.env.PERPLEXITY_API_KEY,
-});
+// Lazy init for SDK clients so missing env vars don't cause silent module-load failures
+let _ai: any | null = null;
+function getAi() {
+  if (!_ai) {
+    _ai = new GoogleGenAI({});
+  }
+  return _ai;
+}
+
+let _perplexityClient: any | null = null;
+function getPerplexityClient() {
+  if (!_perplexityClient) {
+    if (!process.env.PERPLEXITY_API_KEY) {
+      throw new Error("PERPLEXITY_API_KEY is not defined");
+    }
+    _perplexityClient = new Perplexity({ apiKey: process.env.PERPLEXITY_API_KEY });
+  }
+  return _perplexityClient;
+}
 
 export interface FavLog extends IFavLog {}
 export interface AnalysisItem {
@@ -61,7 +76,7 @@ const uncommonWords = [
   "Scan",
 ];
 
-const sanitizeTitle = (text:String) => {
+const sanitizeTitle = (text: string) => {
   return text
     .replace(/\*{1,2}(.*?)\*{1,2}/g, "$1")
     .replace(/`/g, "")
@@ -92,7 +107,7 @@ Output JSON only:
 ]
 `;
 
-    const analysisResponse:Perplexity.Chat.StreamChunk= await client.chat.completions.create({
+    const analysisResponse: any = await getPerplexityClient().chat.completions.create({
       model: "sonar-pro",
       messages: [{ role: "user", content: analysisPrompt }],
     });
@@ -155,7 +170,7 @@ Rules:
 ${analysis.map((a: { title: string }) => `Title: ${a.title}`).join("\n")}
 `;
 
-    const geminiResponse = await ai.models.generateContent({
+    const geminiResponse = await getAi().models.generateContent({
       model: "gemini-2.5-flash",
       contents: geminiPrompt,
       config: { temperature: 0.85, topK: 40, topP: 0.9 }
@@ -199,7 +214,7 @@ ${analysis.map((a: AnalysisItem) => `Title: ${a.title}`).join("\n")}
 `;
 
   try {
-    const geminiResponse = await ai.models.generateContent({
+    const geminiResponse = await getAi().models.generateContent({
       model: "gemini-2.5-flash",
       contents: geminiPrompt,
       config: { temperature: 0.85, topK: 40, topP: 0.9 }

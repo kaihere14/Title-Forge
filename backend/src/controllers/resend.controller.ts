@@ -1,19 +1,44 @@
 import { Resend } from "resend";
 import "dotenv/config";
 
-const resend = new Resend(process.env.RESEND_API);
+// Lazy init Resend client to avoid constructing with undefined env at module load time
+let _resend: Resend | null = null;
+function getResend() {
+  if (!_resend) {
+    if (!process.env.RESEND_API) {
+      throw new Error("RESEND_API environment variable is not defined");
+    }
+    _resend = new Resend(process.env.RESEND_API);
+  }
+  return _resend;
+}
 
 // Helper function to escape HTML special characters
-const escapeHtml = (text) => {
+const escapeHtml = (text: string): string => {
   return text
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 };
 
-export const sendTitles = async (oldTitles, newTitles, email) => {
+
+
+export interface SendTitlesType {
+  oldTitles: string[];
+  newTitles: string[];
+  email: string;
+}
+
+export interface VerifyEmailType {
+  otp: string;
+  email: string;
+}
+
+
+
+export const sendTitles = async({ oldTitles, newTitles, email }: SendTitlesType) => {
   if (!process.env.RESEND_API) {
     throw new Error("RESEND_API environment variable is not defined");
   }
@@ -39,7 +64,7 @@ export const sendTitles = async (oldTitles, newTitles, email) => {
 
     const titleCount = maxLength === 1 ? "1 title" : `${maxLength} titles`;
 
-    const message = await resend.emails.send({
+  const message = await getResend().emails.send({
       from: "Title Forge <no-reply@pawpick.store>",
       subject: `Your ${titleCount} enhanced and ready`,
       to: email,
@@ -137,16 +162,16 @@ export const sendTitles = async (oldTitles, newTitles, email) => {
     return { success: true, message };
   } catch (error) {
     console.error("❌ Failed to send email:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: (error as Error).message };
   }
 };
 
-export const registrationEmail = async (otp, email) => {
+export const registrationEmail = async ({otp, email}: VerifyEmailType) => {
   if (!process.env.RESEND_API) {
     throw new Error("RESEND_API environment variable is not defined");
   }
   try {
-    const message = await resend.emails.send({
+  const message = await getResend().emails.send({
       from: "Title Forge <no-reply@pawpick.store>",
       subject: `Welcome to TitleForge - Verify Your Account`,
       to: email,
@@ -322,16 +347,16 @@ export const registrationEmail = async (otp, email) => {
     return { success: true, message };
   } catch (error) {
     console.error("❌ Failed to send registration email:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: (error as Error).message };
   }
 };
 
-export const forgotPasswordEmail = async (otp, email) => {
+export const forgotPasswordEmail = async ({otp, email}: VerifyEmailType) => {
   if (!process.env.RESEND_API) {
     throw new Error("RESEND_API environment variable is not defined");
   }
   try {
-    const message = await resend.emails.send({
+  const message = await getResend().emails.send({
       from: "Title Forge <no-reply@pawpick.store>",
       subject: `Reset Your Password`,
       to: email,
@@ -463,6 +488,6 @@ export const forgotPasswordEmail = async (otp, email) => {
     return { success: true, message };
   } catch (error) {
     console.error("❌ Failed to send OTP email:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: (error as Error).message };
   }
 };

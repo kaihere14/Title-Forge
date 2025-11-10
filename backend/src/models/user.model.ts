@@ -11,8 +11,8 @@ export interface IUser extends Document {
   subscription: "free" | "starter" | "pro creator";
   usedCredits: number;
   credits: number;
-  otp?: number;
-  otpExpiry?: Date;
+  otp?: number|string;
+  otpExpiry?: Date|number;
   verifyPassword(candidatePassword: string): Promise<boolean>;
 }
 

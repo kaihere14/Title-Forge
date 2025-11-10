@@ -4,16 +4,16 @@ import jwt, { Jwt, JwtPayload, Secret } from "jsonwebtoken";
 import Payment from "../models/payment.model";
 import { redis } from "../db/redis.db";
 import FavLog from "../models/favLog";
-import mongoose from "mongoose";
+// mongoose import removed because _id is handled as string coercion where needed
 
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET as Secret;
 
-function signToken(userId : mongoose.Schema.Types.ObjectId) {
-  const refreshToken = jwt.sign({ id: userId }, JWT_SECRET as Secret, {
+function signToken(userId: string) {
+  const refreshToken = jwt.sign({ id: userId }, JWT_SECRET, {
     expiresIn: "7d",
   });
-  const accessToken = jwt.sign({ id: userId }, JWT_SECRET as Secret, {
+  const accessToken = jwt.sign({ id: userId }, JWT_SECRET, {
     expiresIn: "15m",
   });
   return { accessToken, refreshToken };
@@ -43,8 +43,8 @@ export const register = async(req:Request, res:Response):Promise<unknown> => {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
     await redis.del(`register_otp_${email}`);
-    const user = await User.create({ username, email, password });
-    const { accessToken, refreshToken } = signToken(user._id as mongoose.Schema.Types.ObjectId);
+  const user = await User.create({ username, email, password });
+  const { accessToken, refreshToken } = signToken(String((user as any)._id));
 
     res.status(201).json({
       user,
@@ -75,10 +75,11 @@ export const login = async (req:Request, res:Response): Promise<unknown> => {
     const valid = await user.verifyPassword(password);
     if (!valid) return res.status(401).json({ message: "Invalid credentials" });
 
-    await redis.set(`user_info:${user._id}`, JSON.stringify(user)); 
-    await redis.expire(`user_info:${user._id}`, 3600);
+  const userIdStr = String((user as any)._id);
+  await redis.set(`user_info:${userIdStr}`, JSON.stringify(user)); 
+  await redis.expire(`user_info:${userIdStr}`, 3600);
 
-    const { accessToken, refreshToken } = signToken(user._id as mongoose.Schema.Types.ObjectId);
+  const { accessToken, refreshToken } = signToken(userIdStr);
 
     res.status(200).json({
       user,
@@ -98,7 +99,7 @@ export const logout = async (req:Request, res:Response):Promise<Response> => {
 
 
 export const getUserDetail = async (req:Request, res:Response): Promise<unknown> => {
-  const id= req.userId as mongoose.Schema.Types.ObjectId ;
+  const id = String(req.userId);
   try {
   let user;
     if(await redis.exists(`user_info:${id}`)) {
@@ -118,7 +119,7 @@ export const getUserDetail = async (req:Request, res:Response): Promise<unknown>
   }
 };
 export interface TokenPayload extends JwtPayload {
-  id: mongoose.Schema.Types.ObjectId;
+  id: string;
 }
 
 export const tokenRefresh = async(req:Request,res:Response):Promise<unknown> => {
@@ -128,15 +129,15 @@ export const tokenRefresh = async(req:Request,res:Response):Promise<unknown> => 
       return res.status(400).json({message:"Refresh token required"});
     }
 
-    const decoded = jwt.verify(refreshToken, JWT_SECRET as Secret) as TokenPayload;
-    const userId = decoded.id;
+  const decoded = jwt.verify(refreshToken, JWT_SECRET) as TokenPayload;
+  const userId = String(decoded.id);
     
     const user = await User.findById(userId);
     if(!user) {
       return res.status(404).json({message:"User not found"});
     }
 
-    const {accessToken, refreshToken: newRefreshToken} = signToken(userId);
+  const {accessToken, refreshToken: newRefreshToken} = signToken(userId);
     
     res.json({accessToken, refreshToken: newRefreshToken});
   } catch (error) {
@@ -148,10 +149,10 @@ export const tokenRefresh = async(req:Request,res:Response):Promise<unknown> => 
 
 
 export const deleteUser = async(req:Request,res:Response):Promise<unknown> => {
-  const id = req.userId;
+  const id = String(req.userId);
   try {
     const user = await User.findByIdAndDelete(id);
-    const payment = await Payment.deleteMany({userId: id});
+  await Payment.deleteMany({ userId: id });
     if(!user) {
       return res.status(404).json({message:"User not found"});
     }
@@ -166,7 +167,7 @@ export const deleteUser = async(req:Request,res:Response):Promise<unknown> => {
 export interface ForgotPassword {
   email: string;
   newPassword: string;
-  otp: number;
+  otp: string;
   otpExpiry?: Date;
 }
 
@@ -183,15 +184,13 @@ export const forgotPassword = async(req:Request,res:Response):Promise<unknown> =
       return res.status(404).json({ message: "User not found" });
     } 
   
-    if (user.otp != otp || !user.otpExpiry || user.otpExpiry.getTime() < Date.now() ) {
+    if (user.otp !== otp || !user.otpExpiry || new Date(user.otpExpiry).getTime() < Date.now() ) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
-
     user.password = newPassword;
     user.otp = undefined;
     user.otpExpiry = undefined;
-    await user.save();
-
+    await user.save({ validateBeforeSave: false });
     res.status(200).json({ message: "Password reset successfully" });
   } catch (err) {
     console.error(err);
@@ -201,7 +200,7 @@ export const forgotPassword = async(req:Request,res:Response):Promise<unknown> =
 
 
 export const saveFavLog = async (req:Request, res:Response):Promise<unknown> => {
-  const userId = req.userId;
+  const userId = String(req.userId);
   const { title } = req.body;
 
   try {
@@ -219,7 +218,7 @@ export const saveFavLog = async (req:Request, res:Response):Promise<unknown> => 
 };
 
 export const removeFavLog = async (req:Request, res:Response):Promise<unknown> => {
-  const userId = req.userId;
+  const userId = String(req.userId);
   const { title } = req.body;
   try {
     const result = await FavLog.findOneAndDelete({ userId, title });
@@ -234,7 +233,7 @@ export const removeFavLog = async (req:Request, res:Response):Promise<unknown> =
 };
 
 export const allFavLogs = async (req:Request, res:Response):Promise<unknown> => {
-  const userId = req.userId;
+  const userId = String(req.userId);
   try {
     const favLogs = await FavLog.find({ userId });
     return res.status(200).json({ favLogs });
@@ -244,4 +243,15 @@ export const allFavLogs = async (req:Request, res:Response):Promise<unknown> => 
   }
 };
 
-export default { register, login, logout, getUserDetail, allFavLogs };
+export default {
+  register,
+  login,
+  logout,
+  getUserDetail,
+  allFavLogs,
+  tokenRefresh,
+  deleteUser,
+  forgotPassword,
+  saveFavLog,
+  removeFavLog,
+};

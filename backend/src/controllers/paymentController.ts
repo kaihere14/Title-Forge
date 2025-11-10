@@ -4,24 +4,37 @@ import { redis } from "../db/redis.db";
 import Payment from "../models/payment.model";
 import Razorpay from "razorpay";
 import crypto from "crypto";
+import { Request, Response } from "express";
+import { Secret } from "jsonwebtoken";
 
-const razorpayInstance = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Lazy singleton for Razorpay instance. Will throw if required env vars are missing when used.
+let _razorpayInstance: Razorpay | null = null;
+function getRazorpayInstance() {
+  if (!_razorpayInstance) {
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      throw new Error("Razorpay keys are not configured");
+    }
+    _razorpayInstance = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+  }
+  return _razorpayInstance;
+}
 
-export const fetchAllPaymennts = async (req, res) => {
+export const fetchAllPayments = async (req:Request, res:Response):Promise<unknown> => {
   try {
-    const cachedPayments = await redis.get(`payment_info:${req.userId}`);
+    const userId = String(req.userId);
+    const cachedPayments = await redis.get(`payment_info:${userId}`);
     if (cachedPayments){
       return res
         .status(200)
         .json({ payments: JSON.parse(cachedPayments) });
     }
-    const payments = await Payment.find({ userId: req.userId }).sort({
+    const payments = await Payment.find({ userId }).sort({
       createdAt: -1,
     });
-    await redis.set(`payment_info:${req.userId}`, JSON.stringify(payments));
+    await redis.set(`payment_info:${userId}`, JSON.stringify(payments));
     res.status(200).json({ payments });
   } catch (error) {
     console.error("Error fetching payments:", error);
@@ -29,7 +42,10 @@ export const fetchAllPaymennts = async (req, res) => {
   }
 };
 
-export const createRazorpayOrder = async (req, res) => {
+// keep old export name for compatibility
+export const fetchAllPaymennts = fetchAllPayments;
+
+export const createRazorpayOrder = async (req: Request, res: Response):Promise<unknown> => {
   try {
     const { amount } = req.body;
     console.log("Creating Razorpay order with amount:", amount);
@@ -39,7 +55,7 @@ export const createRazorpayOrder = async (req, res) => {
       receipt: `${randomUUID()}`,
     };
     console.log("Creating Razorpay order with options:", options);
-    const order = await razorpayInstance.orders.create(options);
+  const order = await getRazorpayInstance().orders.create(options);
     console.log("Razorpay order created:", order);
     res.status(200).json({ message: "Razorpay order created", order: order });
   } catch (error) {
@@ -48,18 +64,23 @@ export const createRazorpayOrder = async (req, res) => {
       .json({ message: "Error creating Razorpay order", error: error });
   }
 };
-
-export const verifyRazorpayPayment = async (req, res) => {
+export interface RazorpayPaymentVerification {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+  amount: number;
+}
+export const verifyRazorpayPayment = async (req:Request, res:Response) => {
   try {
     const {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
       amount,
-    } = req.body;
+    } = req.body as RazorpayPaymentVerification;
 
     const generated_signature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest("hex");
     const plan = amount >= 49900 ? "pro" : "starter";
@@ -77,14 +98,19 @@ export const verifyRazorpayPayment = async (req, res) => {
       const userId = req.userId;
       console.log("Updating subscription for user:", userId);
       const user = await User.findById(userId);
-      if (plan === "pro") {
-        user.subscription = "pro";
+      if(!user) {
+        return  res.status(404).json({ message: "User not found" });
+      }
+      if(user){
+        if (plan === "pro") {
+        user.subscription = "pro creator";
         user.credits += 10;
       } else {
         user.subscription = "starter";
         user.credits += 5;
       }
       await user.save({ validateBeforeSave: false });
+      }
       await redis.del(`user_info:${req.userId}`);
 
       return res

@@ -1,0 +1,14 @@
+{
+  "a-file-icon-vscode.opacity": 0,
+  // Make editor and integrated terminal backgrounds match and allow transparency.
+  // Adjust alpha (last two hex digits) if fully transparent (#00000000) looks odd.
+  "workbench.colorCustomizations": {
+    "editor.background": "#00000000",
+    "panel.background": "#00000000",
+    "terminal.background": "#00000000",
+    "sideBar.background": "#00000088",
+    "activityBar.background": "#00000088"
+  },
+  // Optional: make title bar use custom style so the window feels integrated
+  "window.titleBarStyle": "custom"
+}
