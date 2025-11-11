@@ -1,6 +1,7 @@
 import "dotenv/config";
+import { Request, Response, NextFunction } from "express";
 
-export const verifyNityasha = (req, res, next) => {
+export const verifyNityasha = (req: Request, res: Response, next: NextFunction) => {
   if (!process.env.NITYASHA_API_KEY) {
     console.error("NITYASHA_API_KEY is not configured");
     return res.status(500).json({ error: "Server configuration error" });

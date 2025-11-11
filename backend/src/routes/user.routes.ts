@@ -10,10 +10,10 @@ import {
   saveFavLog,
   removeFavLog,
   allFavLogs,
-} from "../controllers/useController";
-import { rateLimit2 } from "../middlewares/rateLimit copy";
-import verifyJWT from "../middlewares/veirfyJWT";
-import { generateOTP, registerOTP } from "../controllers/otp.controller";
+} from "../controllers/useController.js";
+import { rateLimit2 } from "../middlewares/rateLimit copy.js";
+import verifyJWT from "../middlewares/veirfyJWT.js";
+import { generateOTP, registerOTP } from "../controllers/otp.controller.js";
 
 const router = Router();
 

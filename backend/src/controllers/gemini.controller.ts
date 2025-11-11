@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import Perplexity from "@perplexity-ai/perplexity_ai";
-import { redis } from "../db/redis.db";
-import { IFavLog } from "../models/favLog";
+import { redis } from "../db/redis.db.js";
+import { IFavLog } from "../models/favLog.js";
 
 // Lazy init for SDK clients so missing env vars don't cause silent module-load failures
 let _ai: any | null = null;

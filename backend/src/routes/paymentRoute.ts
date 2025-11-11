@@ -1,12 +1,12 @@
 import { Router } from "express";
 
-import verifyJWT from "../middlewares/veirfyJWT";
+import verifyJWT from "../middlewares/veirfyJWT.js";
 import {
   createRazorpayOrder,
   fetchAllPaymennts,
   verifyRazorpayPayment,
-} from "../controllers/paymentController";
-import { rateLimit2 } from "../middlewares/rateLimit copy";
+} from "../controllers/paymentController.js";
+import { rateLimit2 } from "../middlewares/rateLimit copy.js";
 
 const router = Router();
 

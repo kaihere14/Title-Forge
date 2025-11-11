@@ -1,11 +1,11 @@
 import express from "express";
 import "dotenv/config";
-import youtubeRouter from "./routes/youtube.route";
-import userRoute from "./routes/user.routes";
-import payment from "./routes/paymentRoute";
-import { connectDB } from "./db/database";
+import youtubeRouter from "./routes/youtube.route.js";
+import userRoute from "./routes/user.routes.js";
+import payment from "./routes/paymentRoute.js";
+import { connectDB } from "./db/database.js";
 import cookieParser from "cookie-parser";
-import nityashaRoute from "./routes/nityashaRoute";
+import nityashaRoute from "./routes/nityashaRoute.js";
 
 import cors from "cors";
 const app = express();

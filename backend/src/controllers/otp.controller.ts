@@ -1,6 +1,6 @@
-import { redis } from "../db/redis.db";
-import User from "../models/user.model";
-import { forgotPasswordEmail, registrationEmail, VerifyEmailType } from "./resend.controller";
+import { redis } from "../db/redis.db.js";
+import User from "../models/user.model.js";
+import { forgotPasswordEmail, registrationEmail, VerifyEmailType } from "./resend.controller.js";
 import { Request, Response } from "express";
 import "dotenv/config";
 
@@ -42,7 +42,6 @@ export const registerOTP = async (req: Request, res: Response): Promise<unknown>
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
-
     const user = await User.findOne({ email });
     if (user) {
       return res.status(404).json({ message: "User already registered" });

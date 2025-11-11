@@ -1,6 +1,7 @@
-import User from "../models/user.model";
+import User from "../models/user.model.js";
+import { Request, Response, NextFunction } from "express";
 
-const verifyCredit = async (req, res, next) => {
+const verifyCredit = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId;
     const user = await User.findById(userId);

@@ -1,9 +1,9 @@
-import User, { IUser } from "../models/user.model";
+import User, { IUser } from "../models/user.model.js";
 import { Request, Response } from "express";
 import jwt, { Jwt, JwtPayload, Secret } from "jsonwebtoken";
-import Payment from "../models/payment.model";
-import { redis } from "../db/redis.db";
-import FavLog from "../models/favLog";
+import Payment from "../models/payment.model.js";
+import { redis } from "../db/redis.db.js";
+import FavLog from "../models/favLog.js";
 // mongoose import removed because _id is handled as string coercion where needed
 
 

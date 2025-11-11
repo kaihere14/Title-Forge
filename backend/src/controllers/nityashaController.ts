@@ -1,10 +1,10 @@
 import "dotenv/config";
-import { redis } from "../db/redis.db";
+import { redis } from "../db/redis.db.js";
 import axios from "axios";
-import Log from "../models/logs.model";
-import { directGeminiGenerate, generateTitlesFlow } from "./gemini.controller";
+import Log from "../models/logs.model.js";
+import { directGeminiGenerate, generateTitlesFlow } from "./gemini.controller.js";
 import { Request,Response } from "express";
-import { LatestVideosType, YouTubePlaylistItem } from "./yt.controller";
+import { LatestVideosType, YouTubePlaylistItem } from "./yt.controller.js";
 
 export const nityashaGetYoutubeId = async (req:Request, res:Response) => {
   const { name } = req.body as { name: string };

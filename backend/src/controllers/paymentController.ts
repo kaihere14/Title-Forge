@@ -1,7 +1,7 @@
-import { randomUUID } from "crypto";
-import User from "../models/user.model";
-import { redis } from "../db/redis.db";
-import Payment from "../models/payment.model";
+import  { randomUUID } from "crypto";
+import User from "../models/user.model.js";
+import { redis } from "../db/redis.db.js";
+import Payment from "../models/payment.model.js";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import { Request, Response } from "express";

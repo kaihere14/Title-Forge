@@ -3,12 +3,12 @@ import "dotenv/config";
 import {
   directGeminiGenerate,
   generateTitlesFlow,
-} from "./gemini.controller";
-import User from "../models/user.model";
+} from "./gemini.controller.js";
+import User from "../models/user.model.js";
 import { Request, Response } from "express";
-import { sendTitles } from "./resend.controller";
-import { redis } from "../db/redis.db";
-import FavLog, { IFavLog } from "../models/favLog";
+import { sendTitles } from "./resend.controller.js";
+import { redis } from "../db/redis.db.js";
+import FavLog, { IFavLog } from "../models/favLog.js";
 
 export interface GetYoutubeIdType {
   name : string;
@@ -102,9 +102,6 @@ export interface YouTubePlaylistItem {
     videoOwnerChannelId: string;
   };
 }
-
-
-
 
 export const latestVideos = async ({ uploadsPlaylistId, channelId, favLogs }: LatestVideosType) => {
 
