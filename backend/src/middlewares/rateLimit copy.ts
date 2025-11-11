@@ -1,9 +1,10 @@
 import { redis } from "../db/redis.db.js";
+import { NextFunction, Request, Response } from "express";
 
 const RATE_LIMIT_WINDOW_SECONDS = 60; // 1 minute
 const MAX_REQUESTS_PER_WINDOW = 20; // This is the value we'll discuss
 
-export const rateLimit2 = async (req, res, next) => {
+export const rateLimit2 = async (req:Request, res:Response, next:NextFunction) => {
   const ip = req.userId // Use userId if available, otherwise fallback to IP address
   const key = `rateLimit:${ip}`; // Use a distinct key prefix for this specific rate limiter
 

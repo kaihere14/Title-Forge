@@ -1,11 +1,41 @@
 import { GoogleGenAI } from "@google/genai";
 import Perplexity from "@perplexity-ai/perplexity_ai";
 import { redis } from "../db/redis.db.js";
+import { IFavLog } from "../models/favLog.js";
 
-const ai = new GoogleGenAI({});
-const client = new Perplexity({
-  apiKey: process.env.PERPLEXITY_API_KEY,
-});
+// Lazy init for SDK clients so missing env vars don't cause silent module-load failures
+let _ai: any | null = null;
+function getAi() {
+  if (!_ai) {
+    _ai = new GoogleGenAI({});
+  }
+  return _ai;
+}
+
+let _perplexityClient: any | null = null;
+function getPerplexityClient() {
+  if (!_perplexityClient) {
+    if (!process.env.PERPLEXITY_API_KEY) {
+      throw new Error("PERPLEXITY_API_KEY is not defined");
+    }
+    _perplexityClient = new Perplexity({ apiKey: process.env.PERPLEXITY_API_KEY });
+  }
+  return _perplexityClient;
+}
+
+export interface FavLog extends IFavLog {}
+export interface AnalysisItem {
+  title: string;
+  tone: string;
+  emotion: string;
+  keywords: string[];
+  hook: string;
+  intensity: number;
+  missing: string[];
+}
+
+
+
 
 const uncommonWords = [
   "Boost",
@@ -46,7 +76,7 @@ const uncommonWords = [
   "Scan",
 ];
 
-const sanitizeTitle = (text) => {
+const sanitizeTitle = (text: string) => {
   return text
     .replace(/\*{1,2}(.*?)\*{1,2}/g, "$1")
     .replace(/`/g, "")
@@ -55,7 +85,8 @@ const sanitizeTitle = (text) => {
     .trim();
 };
 
-export const generateTitlesFlow = async (titles, channelId,favLogs) => {
+
+export const generateTitlesFlow = async (titles:string[], channelId:string, favLogs:FavLog[]):Promise<string[]> => {
   console.log("favorites logs are:", favLogs);
   if (!Array.isArray(titles) || titles.length === 0) {
     throw new Error("Please provide an array of titles");
@@ -76,15 +107,15 @@ Output JSON only:
 ]
 `;
 
-    const analysisResponse = await client.chat.completions.create({
+    const analysisResponse: any = await getPerplexityClient().chat.completions.create({
       model: "sonar-pro",
       messages: [{ role: "user", content: analysisPrompt }],
     });
 
-    const raw = analysisResponse.choices?.[0]?.message?.content?.trim() || "[]";
+    const raw = analysisResponse.choices?.[0]?.message?.content || "[]";
 
     // More robust cleaning for markdown code blocks
-    let cleaned = raw;
+    let cleaned = raw as string;
 
     // Remove ```json at the start
     if (cleaned.startsWith("```json")) {
@@ -118,8 +149,8 @@ Output JSON only:
         "EX",
         3600 // 1 hour expiry
       );
-    } catch (redisError) {
-      console.error("Redis cache error (non-critical):", redisError.message);
+    } catch (redisError ) {
+      console.error("Redis cache error (non-critical):", (redisError as Error).message);
       // Continue even if caching fails
     }
 
@@ -136,13 +167,13 @@ Rules:
 - 50–68 chars, human tone.
 - Return one title per line.
 
-${analysis.map((a) => `Title: ${a.title}`).join("\n")}
+${analysis.map((a: { title: string }) => `Title: ${a.title}`).join("\n")}
 `;
 
-    const geminiResponse = await ai.models.generateContent({
+    const geminiResponse = await getAi().models.generateContent({
       model: "gemini-2.5-flash",
       contents: geminiPrompt,
-      generationConfig: { temperature: 0.85, topK: 40, topP: 0.9 }
+      config: { temperature: 0.85, topK: 40, topP: 0.9 }
     });
 
     const text = geminiResponse?.text?.trim() || "";
@@ -150,7 +181,7 @@ ${analysis.map((a) => `Title: ${a.title}`).join("\n")}
     const sanitized = sanitizeTitle(text);
     const finalTitles = sanitized
       .split("\n")
-      .map((t) => sanitizeTitle(t))
+      .map((t : string) => sanitizeTitle(t))
       .filter(Boolean);
 
     return finalTitles;
@@ -160,12 +191,15 @@ ${analysis.map((a) => `Title: ${a.title}`).join("\n")}
   }
 };
 
-export const directGeminiGenerate = async (analysis,favLogs) => {
+
+
+
+export const directGeminiGenerate = async (analysis : AnalysisItem[],favLogs:FavLog[]):Promise<string[]> => {
   console.log("Generating titles for channel:");
 
   const geminiPrompt = `
    ${favLogs.length > 0 && `User's favorite logs:
-${favLogs.map((log, index) => `${index + 1}. ${log.title}`).join("\n")} used as inspiration to rewrite all 5 titles.
+${favLogs.map((log: FavLog, index) => `${index + 1}. ${log.title}`).join("\n")} used as inspiration to rewrite all 5 titles.
 `}
 Rewrite each of these titles for maximum YouTube CTR.
 Rules:
@@ -176,14 +210,14 @@ Rules:
 - 50–68 chars, human tone.
 - Return one title per line.
 
-${analysis.map((a) => `Title: ${a.title}`).join("\n")}
+${analysis.map((a: AnalysisItem) => `Title: ${a.title}`).join("\n")}
 `;
 
   try {
-    const geminiResponse = await ai.models.generateContent({
+    const geminiResponse = await getAi().models.generateContent({
       model: "gemini-2.5-flash",
       contents: geminiPrompt,
-      generationConfig: { temperature: 0.85, topK: 40, topP: 0.9 }
+      config: { temperature: 0.85, topK: 40, topP: 0.9 }
 
     });
 
@@ -192,7 +226,7 @@ ${analysis.map((a) => `Title: ${a.title}`).join("\n")}
     const sanitized = sanitizeTitle(text);
     const finalTitles = sanitized
       .split("\n")
-      .map((t) => sanitizeTitle(t))
+      .map((t: string) => sanitizeTitle(t))
       .filter(Boolean);
 
     return finalTitles;

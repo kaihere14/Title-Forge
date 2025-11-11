@@ -1,9 +1,10 @@
 import { redis } from "../db/redis.db.js";
 import User from "../models/user.model.js";
-import { forgotPasswordEmail } from "./resend.controller.js";
-import { registrationEmail } from "./resend.controller.js";
+import { forgotPasswordEmail, registrationEmail, VerifyEmailType } from "./resend.controller.js";
+import { Request, Response } from "express";
+import "dotenv/config";
 
-export const generateOTP = async (req, res) => {
+export const generateOTP = async (req: Request, res: Response): Promise<unknown> => {
   try {
     const { email } = req.body;
     if (!email) {
@@ -17,12 +18,15 @@ export const generateOTP = async (req, res) => {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
+   if(!otp || !user){
+      return res.status(500).json({ message: "Error generating OTP" });
+    }
     user.otp = otp;
     user.otpExpiry = Date.now() + 5 * 60 * 1000; 
-    await user.save();
+    await user.save({ validateBeforeSave: false });
 
 
-    await forgotPasswordEmail(otp, email);
+  await forgotPasswordEmail({otp, email} as VerifyEmailType);
 
     res.status(200).json({ message: "OTP generated and sent"}); 
   } catch (err) {
@@ -32,13 +36,12 @@ export const generateOTP = async (req, res) => {
 };
 
 
-export const registerOTP = async (req, res) => {
+export const registerOTP = async (req: Request, res: Response): Promise<unknown> => {
   try {
     const { email } = req.body;
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
-
     const user = await User.findOne({ email });
     if (user) {
       return res.status(404).json({ message: "User already registered" });
@@ -48,8 +51,8 @@ export const registerOTP = async (req, res) => {
     if (!genOtp) {
       return res.status(500).json({ message: "Error generating OTP" });
     }
-    const mail = await registrationEmail(otp, email);
-    if(!mail){
+  const mail = await registrationEmail({otp, email} as VerifyEmailType);
+    if(!mail?.success){
       return res.status(500).json({ message: "Error sending OTP email" });
     }
     res.status(200).json({ message: "OTP generated and sent" });

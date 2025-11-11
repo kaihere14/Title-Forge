@@ -1,12 +1,15 @@
-import User from "../models/user.model.js";
-import jwt from "jsonwebtoken";
+import User, { IUser } from "../models/user.model.js";
+import { Request, Response } from "express";
+import jwt, { Jwt, JwtPayload, Secret } from "jsonwebtoken";
 import Payment from "../models/payment.model.js";
 import { redis } from "../db/redis.db.js";
 import FavLog from "../models/favLog.js";
+// mongoose import removed because _id is handled as string coercion where needed
 
-const JWT_SECRET = process.env.JWT_SECRET;
 
-function signToken(userId) {
+const JWT_SECRET = process.env.JWT_SECRET as Secret;
+
+function signToken(userId: string) {
   const refreshToken = jwt.sign({ id: userId }, JWT_SECRET, {
     expiresIn: "7d",
   });
@@ -16,9 +19,16 @@ function signToken(userId) {
   return { accessToken, refreshToken };
 }
 
-export const register = async (req, res) => {
+export interface Register {
+  username: string;
+  email: string;
+  password: string;
+  otp: string;
+}
+
+export const register = async(req:Request, res:Response):Promise<unknown> => {
   try {
-    const { username, email, password,otp } = req.body;
+    const { username  , email, password,otp } = req.body as Register;
     if (!username || !email || !password || !otp) {
       return res
         .status(400)
@@ -33,8 +43,8 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
     await redis.del(`register_otp_${email}`);
-    const user = await User.create({ username, email, password });
-    const { accessToken, refreshToken } = signToken(user._id);
+  const user = await User.create({ username, email, password });
+  const { accessToken, refreshToken } = signToken(String((user as any)._id));
 
     res.status(201).json({
       user,
@@ -47,9 +57,14 @@ export const register = async (req, res) => {
   }
 };
 
-export const login = async (req, res) => {
+export interface Login {
+  email: string;
+  password: string;
+}
+
+export const login = async (req:Request, res:Response): Promise<unknown> => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body as Login;
     if (!email || !password)
       return res.status(400).json({ message: "email and password required" });
 
@@ -60,10 +75,11 @@ export const login = async (req, res) => {
     const valid = await user.verifyPassword(password);
     if (!valid) return res.status(401).json({ message: "Invalid credentials" });
 
-    await redis.set(`user_info:${user._id}`, JSON.stringify(user)); 
-    await redis.expire(`user_info:${user._id}`, 3600);
+  const userIdStr = String((user as any)._id);
+  await redis.set(`user_info:${userIdStr}`, JSON.stringify(user)); 
+  await redis.expire(`user_info:${userIdStr}`, 3600);
 
-    const { accessToken, refreshToken } = signToken(user._id);
+  const { accessToken, refreshToken } = signToken(userIdStr);
 
     res.status(200).json({
       user,
@@ -77,17 +93,18 @@ export const login = async (req, res) => {
   }
 };
 
-export const logout = async (req, res) => {
-  res.json({ message: "Logged out successfully" });
+export const logout = async (req:Request, res:Response):Promise<Response> => {
+  return res.json({ message: "Logged out successfully" });
 };
 
-export const getUserDetail = async (req, res) => {
-  const id = req.userId;
+
+export const getUserDetail = async (req:Request, res:Response): Promise<unknown> => {
+  const id = String(req.userId);
   try {
   let user;
     if(await redis.exists(`user_info:${id}`)) {
       const cachedUser = await redis.get(`user_info:${id}`);
-      return  res.json({ user: JSON.parse(cachedUser) });
+      return  res.json({ user: JSON.parse(cachedUser as string) });
     }else{
       user = await User.findById(id);
       await redis.set(`user_info:${id}`, JSON.stringify(user));
@@ -101,23 +118,26 @@ export const getUserDetail = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+export interface TokenPayload extends JwtPayload {
+  id: string;
+}
 
-export const tokenRefresh = async(req,res) => {
+export const tokenRefresh = async(req:Request,res:Response):Promise<unknown> => {
   const {refreshToken} = req.body;
   try {
     if(!refreshToken) {
       return res.status(400).json({message:"Refresh token required"});
     }
 
-    const decoded = jwt.verify(refreshToken, JWT_SECRET);
-    const userId = decoded.id;
+  const decoded = jwt.verify(refreshToken, JWT_SECRET) as TokenPayload;
+  const userId = String(decoded.id);
     
     const user = await User.findById(userId);
     if(!user) {
       return res.status(404).json({message:"User not found"});
     }
 
-    const {accessToken, refreshToken: newRefreshToken} = signToken(userId);
+  const {accessToken, refreshToken: newRefreshToken} = signToken(userId);
     
     res.json({accessToken, refreshToken: newRefreshToken});
   } catch (error) {
@@ -128,11 +148,11 @@ export const tokenRefresh = async(req,res) => {
 
 
 
-export const deleteUser = async(req,res) => {
-  const id = req.userId;
+export const deleteUser = async(req:Request,res:Response):Promise<unknown> => {
+  const id = String(req.userId);
   try {
     const user = await User.findByIdAndDelete(id);
-    const payment = await Payment.deleteMany({userId: id});
+  await Payment.deleteMany({ userId: id });
     if(!user) {
       return res.status(404).json({message:"User not found"});
     }
@@ -144,10 +164,16 @@ export const deleteUser = async(req,res) => {
   }
 }
 
+export interface ForgotPassword {
+  email: string;
+  newPassword: string;
+  otp: string;
+  otpExpiry?: Date;
+}
 
-export const forgotPassword = async (req,res) => {
+export const forgotPassword = async(req:Request,res:Response):Promise<unknown> => {
 
-  const { email, newPassword, otp } = req.body;
+  const { email, newPassword, otp } = req.body as ForgotPassword;
   try {
     if (!email || !newPassword || !otp) {
       return res.status(400).json({ message: "Email, new password and OTP are required" });
@@ -158,15 +184,13 @@ export const forgotPassword = async (req,res) => {
       return res.status(404).json({ message: "User not found" });
     } 
   
-    if (user.otp != otp || user.otpExpiry < Date.now()) {
+    if (user.otp !== otp || !user.otpExpiry || new Date(user.otpExpiry).getTime() < Date.now() ) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
-
     user.password = newPassword;
-    user.otp = null;
-    user.otpExpiry = null;
-    await user.save();
-
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+    await user.save({ validateBeforeSave: false });
     res.status(200).json({ message: "Password reset successfully" });
   } catch (err) {
     console.error(err);
@@ -175,8 +199,8 @@ export const forgotPassword = async (req,res) => {
 }
 
 
-export const saveFavLog = async (req, res) => {
-  const userId = req.userId;
+export const saveFavLog = async (req:Request, res:Response):Promise<unknown> => {
+  const userId = String(req.userId);
   const { title } = req.body;
 
   try {
@@ -193,8 +217,8 @@ export const saveFavLog = async (req, res) => {
   }
 };
 
-export const removeFavLog = async (req, res) => {
-  const userId = req.userId;
+export const removeFavLog = async (req:Request, res:Response):Promise<unknown> => {
+  const userId = String(req.userId);
   const { title } = req.body;
   try {
     const result = await FavLog.findOneAndDelete({ userId, title });
@@ -208,15 +232,26 @@ export const removeFavLog = async (req, res) => {
   } 
 };
 
-export const allFavLogs = async (req, res) => {
-  const userId = req.userId;
+export const allFavLogs = async (req:Request, res:Response):Promise<unknown> => {
+  const userId = String(req.userId);
   try {
     const favLogs = await FavLog.find({ userId });
-    res.status(200).json({ favLogs });
+    return res.status(200).json({ favLogs });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
-export default { register, login, logout, getUserDetail, allFavLogs };
+export default {
+  register,
+  login,
+  logout,
+  getUserDetail,
+  allFavLogs,
+  tokenRefresh,
+  deleteUser,
+  forgotPassword,
+  saveFavLog,
+  removeFavLog,
+};

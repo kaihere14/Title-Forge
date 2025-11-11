@@ -1,30 +1,23 @@
-import axios from "axios";
 import "dotenv/config";
-import {
-  directGeminiGenerate,
-  generateTitlesFlow,
-} from "./gemini.controller.js";
-import User from "../models/user.model.js";
-import { sendTitles } from "./resend.controller.js";
 import { redis } from "../db/redis.db.js";
-import FavLog from "../models/favLog.js";
+import axios from "axios";
+import Log from "../models/logs.model.js";
+import { directGeminiGenerate, generateTitlesFlow } from "./gemini.controller.js";
+import { Request,Response } from "express";
+import { LatestVideosType, YouTubePlaylistItem } from "./yt.controller.js";
 
-export const getYoutubeId = async (req, res) => {
-  const { name, email } = req.body;
-  const userId = req.userId;
-  if (!userId) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-  const favLogs = await FavLog.find({ userId }).sort({ createdAt: -1 }).limit(10);
-  if (!name || !email) {
-    return res.status(400).json({ error: "Name and email are required" });
+export const nityashaGetYoutubeId = async (req:Request, res:Response) => {
+  const { name } = req.body as { name: string };
+  if (!name) {
+    return res.status(400).json({ error: "Name is required" });
   }
   const channelName = name.toString().trim();
+  const encodedChannelName = encodeURIComponent(channelName)
   const apiKey = process.env.YOUTUBE_API_KEY;
 
   try {
     const response = await axios.get(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${channelName}&key=${apiKey}`
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodedChannelName}&key=${apiKey}`
     );
     if (!response.data.items || response.data.items.length === 0) {
       return res.status(404).json({ error: "Channel not found" });
@@ -38,12 +31,12 @@ export const getYoutubeId = async (req, res) => {
     }
     const uploadsPlaylistId =
       response2.data.items[0].contentDetails.relatedPlaylists.uploads;
-    const { answer, value } = await latestVideos(uploadsPlaylistId, channelId , favLogs);
-    await sendTitles(value, answer, email);
-    const userId = req.userId;
-    await redis.del(`user_info:${userId}`);
-    await User.findByIdAndUpdate(userId, {
-      $inc: { credits: -1, usedCredits: +1 },
+    const { answer, value } = await nityashaLatestVideos({ uploadsPlaylistId, channelId  } as LatestVideosType);
+
+    Log.create({
+      name: channelName,
+      oldTitles: JSON.stringify(value),
+      newTitles: JSON.stringify(answer),
     });
 
     return res.status(200).json({
@@ -53,24 +46,25 @@ export const getYoutubeId = async (req, res) => {
       channelId: channelId,
     });
   } catch (error) {
-    console.error("Error fetching YouTube channel ID:", error.message);
+    console.error("Error fetching YouTube channel ID:", (error as Error).message);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-export const latestVideos = async (uploadsPlaylistId, channelId, favLogs) => {
-  const apiKey = process.env.YOUTUBE_API_KEY;
+export const nityashaLatestVideos =async ({ uploadsPlaylistId, channelId, favLogs }: LatestVideosType) => {
 
+  const apiKey = process.env.YOUTUBE_API_KEY;
   try {
     const response = await axios.get(
       `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=5&key=${apiKey}`
     );
-    const videoData = response.data.items;
-    const value = [];
+    const videoData = response.data.items as YouTubePlaylistItem[];
+
+    const value:string[]= [];
     videoData.map((val, index) => {
       value.push(val.snippet.title);
     });
-    let answer;
+    let answer:string[];
     const cachedAnalysis = await redis.get(`channel_analysis:${channelId}`);
     if (cachedAnalysis) {
       console.log("Using cached analysis for channel:", channelId);
@@ -78,9 +72,10 @@ export const latestVideos = async (uploadsPlaylistId, channelId, favLogs) => {
     } else {
       answer = await generateTitlesFlow(value, channelId  , favLogs);
     }
+
     return { answer, value };
   } catch (error) {
-    console.error("Error fetching latest videos:", error.message);
+    console.error("Error fetching latest videos:", (error as Error).message);
     throw new Error("Failed to fetch latest videos");
   }
 };
