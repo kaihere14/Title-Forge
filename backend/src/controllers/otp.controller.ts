@@ -52,7 +52,7 @@ export const registerOTP = async (req: Request, res: Response): Promise<unknown>
       return res.status(500).json({ message: "Error generating OTP" });
     }
   const mail = await registrationEmail({otp, email} as VerifyEmailType);
-    if(!mail){
+    if(!mail?.success){
       return res.status(500).json({ message: "Error sending OTP email" });
     }
     res.status(200).json({ message: "OTP generated and sent" });
