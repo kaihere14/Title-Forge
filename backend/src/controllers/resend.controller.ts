@@ -23,8 +23,6 @@ const escapeHtml = (text: string): string => {
     .replace(/'/g, "&#039;");
 };
 
-
-
 export interface SendTitlesType {
   oldTitles: string[];
   newTitles: string[];
@@ -36,9 +34,17 @@ export interface VerifyEmailType {
   email: string;
 }
 
+export interface CustomEmailType {
+  to: string;
+  subject: string;
+  html: string;
+}
 
-
-export const sendTitles = async({ oldTitles, newTitles, email }: SendTitlesType) => {
+export const sendTitles = async ({
+  oldTitles,
+  newTitles,
+  email,
+}: SendTitlesType) => {
   if (!process.env.RESEND_API) {
     throw new Error("RESEND_API environment variable is not defined");
   }
@@ -64,7 +70,7 @@ export const sendTitles = async({ oldTitles, newTitles, email }: SendTitlesType)
 
     const titleCount = maxLength === 1 ? "1 title" : `${maxLength} titles`;
 
-  const message = await getResend().emails.send({
+    const message = await getResend().emails.send({
       from: "Title Forge <no-reply@pawpick.store>",
       subject: `Your ${titleCount} enhanced and ready`,
       to: email,
@@ -166,12 +172,12 @@ export const sendTitles = async({ oldTitles, newTitles, email }: SendTitlesType)
   }
 };
 
-export const registrationEmail = async ({otp, email}: VerifyEmailType) => {
+export const registrationEmail = async ({ otp, email }: VerifyEmailType) => {
   if (!process.env.RESEND_API) {
     throw new Error("RESEND_API environment variable is not defined");
   }
   try {
-  const message = await getResend().emails.send({
+    const message = await getResend().emails.send({
       from: "Title Forge <no-reply@pawpick.store>",
       subject: `Welcome to TitleForge - Verify Your Account`,
       to: email,
@@ -351,12 +357,35 @@ export const registrationEmail = async ({otp, email}: VerifyEmailType) => {
   }
 };
 
-export const forgotPasswordEmail = async ({otp, email}: VerifyEmailType) => {
+export const sendCustomEmail = async ({
+  to,
+  subject,
+  html,
+}: CustomEmailType) => {
   if (!process.env.RESEND_API) {
     throw new Error("RESEND_API environment variable is not defined");
   }
   try {
-  const message = await getResend().emails.send({
+    const message = await getResend().emails.send({
+      from: "Title Forge <no-reply@pawpick.store>",
+      subject: subject,
+      to: to,
+      html: html,
+    });
+
+    return { success: true, message };
+  } catch (error) {
+    console.error("❌ Failed to send custom email:", error);
+    return { success: false, error: (error as Error).message };
+  }
+};
+
+export const forgotPasswordEmail = async ({ otp, email }: VerifyEmailType) => {
+  if (!process.env.RESEND_API) {
+    throw new Error("RESEND_API environment variable is not defined");
+  }
+  try {
+    const message = await getResend().emails.send({
       from: "Title Forge <no-reply@pawpick.store>",
       subject: `Reset Your Password`,
       to: email,

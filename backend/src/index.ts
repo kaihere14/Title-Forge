@@ -6,6 +6,7 @@ import payment from "./routes/paymentRoute.js";
 import { connectDB } from "./db/database.js";
 import cookieParser from "cookie-parser";
 import nityashaRoute from "./routes/nityashaRoute.js";
+import queueRouter from "./routes/queue.routes.js";
 
 import cors from "cors";
 const app = express();
@@ -31,12 +32,14 @@ app.use("/api/youtube", youtubeRouter);
 app.use("/api/user", userRoute);
 app.use("/api/payment", payment);
 app.use("/api/nityasha", nityashaRoute);
+app.use("/api/queue", queueRouter);
+
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-connectDB().then(() => {
-  app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+connectDB().then(async () => {
+  app.listen(port, async () => {
+    console.log(`🚀 Server listening on port ${port}`);
   });
 });
