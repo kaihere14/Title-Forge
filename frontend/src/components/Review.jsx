@@ -19,7 +19,7 @@ export default function TestimonialCard() {
       </div>
 
       {/* Testimonial Quote */}
-      <blockquote className="mb-6">
+      <blockquote className="mb-6 ">
         <p className="text-xl leading-relaxed text-gray-900 font-normal">
           "After using the TitleForge, my video views increased by 78%. The AI-powered suggestions transformed my generic titles into compelling headlines that actually get clicks. What used to get 3K views now consistently hits 5-6K. This tool made a real difference in my channel's performance."
         </p>
