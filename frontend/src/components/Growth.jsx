@@ -54,7 +54,7 @@ export default function VideoGrowthCard() {
   };
 
   return (
-    <div className="w-full max-w-2xl bg-gray-50 rounded-2xl p-4 md:p-8 font-sans">
+    <div className="w-full  bg-gray-50 rounded-2xl p-4 md:p-8 font-sans">
       {/* Header */}
       <div className="flex items-center gap-2 mb-6 md:mb-8">
         <div className="w-2 h-2 bg-black rounded-sm"></div>

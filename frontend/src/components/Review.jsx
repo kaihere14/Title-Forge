@@ -5,7 +5,7 @@ import React from 'react';
 
 export default function TestimonialCard() {
   return (
-    <div className="w-full bg-gradient-to-br from-orange-50 to-pink-50 rounded-3xl p-8 font-sans">
+    <div className="w-full bg-gradient-to-br md:min-h-133 from-orange-50 to-pink-50 rounded-3xl p-8 font-sans">
       {/* Profile Image */}
       <div className="mb-6">
         <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200">
