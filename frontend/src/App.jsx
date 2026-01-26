@@ -1,5 +1,6 @@
 import React from "react";
 import { Route, Routes } from "react-router";
+import { Analytics } from "@vercel/analytics/react";
 import Home from "./pages/Home";
 import About from "./pages/About";
 
@@ -34,6 +35,7 @@ const App = () => {
         <Route path="/forgot-password" element={<Forgot_password />} />
         <Route path="*" element={<Orange404Page />} />
       </Routes>
+      <Analytics />
     </div>
   );
 };
